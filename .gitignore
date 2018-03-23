@@ -3,7 +3,7 @@
 .RData
 .Ruserdata
 *.png
-*.xslx
+*.xlsx
 *.pdf
 *.jpeg
 Figures/
