@@ -93,7 +93,6 @@ nmolespb207 = 0#1/100*nmolesac227
 
 
 
-
 #initial DPM of ac-225
 dpmac225 = uciac225*2220000
 dpmlu177 = ucilu177*2220000
@@ -339,7 +338,7 @@ eAc227SUM = (eAc227+eTh227+eFr223+eRa223+eRn219+ePo215+ePb211+eBi211+eTl207+ePb2
 
 edaughtersdata = data.frame(times)
 edaughtersdata = cbind(edaughtersdata, eAc225, eFr221, eAt217, eBi213, ePo213, ePb209, eBi209, eRn217, eTl209, eSUM, eSUMoverac225, eLu177, eAlpha, eBeta, eAc227, eTh227, eFr223, eRa223, eRn219, ePo215, ePb211, eBi211, eTl207, ePb207, eAc227SUM)
-colnames(edaughtersdata) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "SUM / Ac-225", "Lu-177 (20 µCi)", "Ac-225 SUM Alpha", "Ac-225 SUM Beta", "Ac-227 (0.2 µCi)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM")
+colnames(edaughtersdata) = c("times", "Ac-225 (0.2 ?Ci)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "SUM / Ac-225", "Lu-177 (20 ?Ci)", "Ac-225 SUM Alpha", "Ac-225 SUM Beta", "Ac-227 (0.2 ?Ci)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM")
 
 eplotrows = unique(round(lseq(1, length(timesout), 1000)))
 eplottimes <- times[eplotrows]
@@ -735,7 +734,7 @@ plot_ly() %>%
 #Comapre activities of Ac-225 vs Lu-177 with the starting activities used at the top uciac225, ucilu177
 #Lutetium-177 activity calculator
 
-#colnames(edaughtersdata)[c(2,13,14,15)] = c("Ac-225 (0.X µCi)", "Lu-177 (20 µCi)", "Ac-225 SUM Alpha", "Ac-225 SUM Beta")
+#colnames(edaughtersdata)[c(2,13,14,15)] = c("Ac-225 (0.X ?Ci)", "Lu-177 (20 ?Ci)", "Ac-225 SUM Alpha", "Ac-225 SUM Beta")
 
 #no PK
 eploto <- edaughtersdata[eplotrows, c(1,2,11,14,15,13,3,4,5,6,7,8,9,10,16,17,18,19,20,21,22,23,24,25,26)]
@@ -809,7 +808,7 @@ colnames(meplotout2) <- c("times","Species","value")
 
 #compare the two
 eplotoutcompare <- cbind((edaughtersdata[eplotrows, c(1,2,11,13)]),eplotout2[,2:4])
-colnames(eplotoutcompare)[5:7] = cbind("Ac-225 (0.2 µCi) PK","Ac-225 SUM PK","Lu-177 (20 µCi) PK")
+colnames(eplotoutcompare)[5:7] = cbind("Ac-225 (0.2 ?Ci) PK","Ac-225 SUM PK","Lu-177 (20 ?Ci) PK")
 
 meplotoutcompare = melt(eplotoutcompare, id="times")
 colnames(meplotoutcompare) <- c("times","Species","value")
@@ -967,7 +966,7 @@ Ac227SUMgsi[i] = sum(Ac227SUMgs[1:i-1])
 
 Allgsim = data.frame(cbind(eplotout[,1],Ac225gsi,Ac225SUMgsi,BetaSUMgsi,Lu177gsi,Fr221gsi,At217gsi,Bi213gsi,Po213gsi,Pb209gsi,Bi209gsi,Rn217gsi,Tl209gsi,Ac227gsi,Th227gsi,Fr223gsi,Ra223gsi,Rn219gsi,Po215gsi,Pb211gsi,Bi211gsi,Tl207gsi,Pb207gsi,Ac227SUMgsi))
 #Allgsim = Allgsim[-1,] #remove first row
-colnames(Allgsim) = c("times", "Ac-225 (0.027 µCi)","Ac-225 (0.027 µCi) SUM","Ac-225 Beta SUM","Lu-177 (5.6 µCi)","Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-227 (0.X µCi)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM")
+colnames(Allgsim) = c("times", "Ac-225 (0.027 ?Ci)","Ac-225 (0.027 ?Ci) SUM","Ac-225 Beta SUM","Lu-177 (5.6 ?Ci)","Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-227 (0.X ?Ci)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM")
 
 #select columns
 #for Ac-225
@@ -975,7 +974,7 @@ Allgsim2 = Allgsim[,cbind(1,3,5)]
 
 #For Ac-227
 #Allgsim2 = Allgsim[, c(1,14,24,15,16,17,18,19,20,21,22,23)]
-#colnames(Allgsim2) = c("times", "Ac-227 (0.X µCi)", "Ac-227 SUM)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207")
+#colnames(Allgsim2) = c("times", "Ac-227 (0.X ?Ci)", "Ac-227 SUM)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207")
 
 
 #can change all these to mAllgsim si mAllgsim2
@@ -1092,7 +1091,7 @@ gAcvsn = gAc227SUM/gAc225SUM
 
 gdaughtersdata = data.frame(Allgsim[,1])
 gdaughtersdata = cbind(gdaughtersdata, gAc225, gFr221, gAt217, gBi213, gPo213, gPb209, gBi209, gRn217, gTl209, gAc225SUM, gSUMoverac225, gLu177, gAlpha, gBeta, gAc225n, gLu177n, gAlphan, gBetan, gAc227,gTh227,gFr223,gRa223,gRn219,gPo215,gPb211,gBi211,gTl207,gPb207,gAc227SUM, gAc227n, gAcvsn)
-colnames(gdaughtersdata) = c("times", "Ac-225 (0.00018 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 (0.19 nCi) SC16.56 +DLL3", "Ac-225 SUM / Ac-225", "Lu-177 (250 nCi) SC16.56 +DLL3", "Ac-225 SUM Alpha", "Ac-225 SUM Beta", "Ac-225 SUM / Ac-225 SUM", "Lu-177 / Ac-225 SUM", "Alpha SUM / Ac-225 SUM", "Beta SUM / Ac-225 SUM", "Ac-227 (2 nCi)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM", "Ac-227 / Ac-227 SUM", "Ac-225 SUM / Ac-227 SUM")
+colnames(gdaughtersdata) = c("times", "Ac-225 (0.00018 ?Ci)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 (0.19 nCi) SC16.56 +DLL3", "Ac-225 SUM / Ac-225", "Lu-177 (250 nCi) SC16.56 +DLL3", "Ac-225 SUM Alpha", "Ac-225 SUM Beta", "Ac-225 SUM / Ac-225 SUM", "Lu-177 / Ac-225 SUM", "Alpha SUM / Ac-225 SUM", "Beta SUM / Ac-225 SUM", "Ac-227 (2 nCi)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM", "Ac-227 / Ac-227 SUM", "Ac-225 SUM / Ac-227 SUM")
 
 
 
@@ -1310,7 +1309,7 @@ ggplot(mgplotout, aes(x=times, y=value, by=Species))+
 
 fAllgsim = data.frame(cbind(gplotout[,1],gAc225n,gAc225n/gAc225n,gLu177n,gAcvsn))
 #fAllgsim = fAllgsim[-1,] #remove first row
-colnames(fAllgsim) = c("times", "Ac-225 0.2 µCi","Ac-225 0.2 µCi + Daughters","Lu-177 20 µCi", "Ac-227 2 nCi + Daughters")
+colnames(fAllgsim) = c("times", "Ac-225 0.2 ?Ci","Ac-225 0.2 ?Ci + Daughters","Lu-177 20 ?Ci", "Ac-227 2 nCi + Daughters")
 
 
 
@@ -1355,7 +1354,7 @@ AF = 20
 
 eqAllgsim = data.frame(cbind(gplotout[,1],gAc225*AF,gAc225SUM*AF,gLu177))
 #eqAllgsim = eqAllgsim[-1,] #remove first row
-colnames(eqAllgsim) = c("times", "Ac-225 0.51 µCi","Ac-225 0.51 µCi + Daughters","Lu-177 64 µCi")
+colnames(eqAllgsim) = c("times", "Ac-225 0.51 ?Ci","Ac-225 0.51 ?Ci + Daughters","Lu-177 64 ?Ci")
 
 
 
@@ -1396,7 +1395,7 @@ ggplot(meqAllgsim, aes(x=times, y=value, by=Species))+
 
 eqfAllgsim = data.frame(cbind(gplotout[,1],(gAc225*AF)/(gAc225SUM*AF),(gAc225SUM*AF)/(gAc225SUM*AF),gLu177/(gAc225SUM*AF)))
 #eqfAllgsim = eqfAllgsim[-1,] #remove first row
-colnames(eqfAllgsim) = c("times", "Ac-225 0.2 µCi","Ac-225 0.2 µCi + Daughters","Lu-177 20 µCi")
+colnames(eqfAllgsim) = c("times", "Ac-225 0.2 ?Ci","Ac-225 0.2 ?Ci + Daughters","Lu-177 20 ?Ci")
 
 
 
@@ -1463,7 +1462,7 @@ WT = 0.1
 
 eqtAllgsim = data.frame(cbind(gplotout[,1],gAc225*AF*WT,gAc225SUM*AF*WT,gLu177*WT))
 #eqAllgsim = eqAllgsim[-1,] #remove first row
-colnames(eqtAllgsim) = c("times", "Ac-225 0.2 µCi","Ac-225 0.2 µCi + Daughters","Lu-177 20 µCi")
+colnames(eqtAllgsim) = c("times", "Ac-225 0.2 ?Ci","Ac-225 0.2 ?Ci + Daughters","Lu-177 20 ?Ci")
 
 
 
@@ -1512,7 +1511,7 @@ ggplot(meqtAllgsim, aes(x=times, y=value, by=Species))+
 #PK analysis
 #######################################################################################################
 
-# µCi injected dose
+# ?Ci injected dose
 injdose = 0.1
 
 
