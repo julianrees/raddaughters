@@ -158,8 +158,8 @@ daughters = function(t, state, parameters, probabilities) {with(as.list(c(state,
 
 #Ac-227 timefame
 #timedays = 365*21.772                                     #total days for plot
-timedays = 4
-timestep = 0.1                                   #step size
+timedays = 20
+timestep = 0.01                                   #step size
 timestepout = 1/timestep                           #to make a timesout match starting at 1
 
 times = seq(0, timedays, by = timestep)     #list all points
@@ -372,21 +372,26 @@ wellheight = 3.16 #mm
 wellradius = 3.175^2 #mm
 cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
 
-#maximum distance travelled for vector
-pmaximuma = alphapathlength
-pmaximumb = ((wellheight)^2+(((wellradius)^0.5)*2)^2)^0.5
+#maximum distance travelled for vector (mm)
+
+maximumdistances = data.frame("Ac225" = 0.065, "Fr221" = 1, "At217" = 1, "Bi213" = 10, "Po213" = 1, "Pb209" = 10, "Bi209" = 10, "Rn217" = 10, "Tl209" = 10, "Lu177" = 0.41202 )
+
+pmaximumb = runif(length(times), 0, maximumdistances[,'Lu177'])
 
 
-Ac225pathlength = 0.045 #mm on average
-Lu177pathlength = 1.6/4 #mm on average
-Lu177halfdistance = betapathlength/8
+Lu177pathlength =  #mm on average
+Lu177halfdistance = maximumdistances[,'Lu177']
 
 #point coordinates
 rho = sqrt(runif(length(times), 0, wellradius))
 phi = runif(length(times), 0, 2*pi) #lowercase phi is the point location
 pz = runif(length(times), 0, wellheight)
+
+#scaling factor -- check how close to kD it is
 pz = pz^4
 pz = pz/wellheight^4*wellheight
+#end scaling factor
+
 px <- rho*cos(phi)
 py <- rho*sin(phi)
 
@@ -395,7 +400,8 @@ Phi = runif(length(times), 0, 2*pi) #capital Phi is the point trajectory
 pc = cellheight/cos(theta) #->>pc is the path length of particle interacting through cells
 pr = pz-cellheight  #radius from particle to cell surface
 pb = pr/cos(theta)
-########################## choose if alpha or beta distance
+
+########################## choose if alpha or beta distance, capital Rho is point magnitude
 Rho = pmaximumb*sin(theta)
 
 #Vector coordinates
@@ -427,11 +433,13 @@ elementarycharge = 1.6021766208*10^-19
 restmass = 
 zcharge = 2
 
-Ionization = 75 #eV for water
-zalpha = 2 #protons
+Ionization = 78 #eV for water
+zalpha = 1 #protons
 masselectron = 
 
--dE/dx = 4*pi/()
+alphavelocity = function(alphadistance){-alphadistance*2.222*10^11+10^10}  
+  
+ 
 
 
 
@@ -440,12 +448,11 @@ masselectron =
 
 
 
+Ac225intensity = function(raylength){(energies['eac2fr']/maximumdistances[,'Ac225'])}
 
 
-Ac225intensity = function(raylength){(energies['eac2fr']/Ac225pathlength)}
 
 #Ac225intensity = function(raylength){(energies['eac2fr']/Ac225pathlength) * (raylength^0.05)-((energies['eac2fr']/Ac225pathlength))/(1+(raylength/Ac225pathlength)^(-10))}
-
 #betaintensity = function(raylength){energies['elu2hfbeta']/betapathlength-((energies['elu2hfbeta']/betapathlength))/(1+(raylength/(betapathlength/4))^(-1))} #MeV/mm
 #alphaintensity = function(raylength){energies['eac2fr']/alphapathlength-((energies['eac2fr']/alphapathlength))/(1+(raylength/alphapathlength)^(-10))} #MeV/mm
 
