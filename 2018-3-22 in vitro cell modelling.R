@@ -368,26 +368,35 @@ eplottimes <- times[eplotrows]
  #         marker = list(size = 3)) #,color = I('black'), )
 
 
+
+
+
+
+
+
+
+
+
 wellheight = 3.16 #mm
 wellradius = 3.175^2 #mm
 cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
 
-#maximum distance travelled for vector (mm)
 
+#maximum distance travelled for vector (mm)
 maximumdistances = data.frame("Ac225" = 0.065, "Fr221" = 1, "At217" = 1, "Bi213" = 10, "Po213" = 1, "Pb209" = 10, "Bi209" = 10, "Rn217" = 10, "Tl209" = 10, "Lu177" = 0.41202 )
 
-pmaximumb = runif(length(times), 0, maximumdistances[,'Lu177'])
+pmaximumb = 2 #runif(length(times), 0, maximumdistances[,'Lu177'])
 
 
 Lu177pathlength =  #mm on average
 Lu177halfdistance = maximumdistances[,'Lu177']
 
-#point coordinates
+#point coordinates used for ALL destructions
 rho = sqrt(runif(length(times), 0, wellradius))
 phi = runif(length(times), 0, 2*pi) #lowercase phi is the point location
 pz = runif(length(times), 0, wellheight)
 
-#scaling factor -- check how close to kD it is
+#scaling factor -- check how close to kD it is?
 pz = pz^4
 pz = pz/wellheight^4*wellheight
 #end scaling factor
@@ -402,7 +411,7 @@ pr = pz-cellheight  #radius from particle to cell surface
 pb = pr/cos(theta)
 
 ########################## choose if alpha or beta distance, capital Rho is point magnitude
-Rho = pmaximumb*sin(theta)
+Rho = pmaximumb*sin(theta) #data.frame('Ac225' = maximumdistances[,'Ac225']*sin(theta))
 
 #Vector coordinates
 Px = px - Rho*cos(Phi)
