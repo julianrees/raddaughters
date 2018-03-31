@@ -122,7 +122,7 @@ state = c(A = nmolesac225, B = nmolesfr221, C = nmolesat217, D = nmolesbi213, E 
 
 #For TLC calc
 #state = c(A = 0, B = out[out$time==0.083,"Fr221"], C = out[out$time==0.083,"At217"], D = out[out$time==0.083,"Bi213"], E = out[out$time==0.083,"Po213"], f = out[out$time==0.083,"Pb209"], G = out[out$time==0.083,"Bi209"], H = out[out$time==0.083,"Rn217"], I = out[out$time==0.083,"Tl209"],J = nmoleslu177, K = 0, L = nmolesac227, M = nmolesth227, N = nmolesfr223, O = nmolesra223, P = nmolesrn219, Q = nmolespo215, R = nmolespb211, S = nmolesbi211, t = nmolestl207, U = nmolespb207)
-masses = c(j1 = 225, j2 = 221, j3 = 217, j4 = 213, j5 = 213, j6 = 209, j7 = 209, j8 = 217, j9 = 209, j10 = 177, j11 = 177, j12 = 227, j13 = 227, j14 = 223, j15 = 223, j16 = 219, j17 = 215, j18 = 211, j19 = 211, j20 = 207, j21 = 207)
+masses = c('Ac225' = 225, 'Fr221' = 221, 'At217' = 217, 'Bi213' = 213, 'Po213' = 213, 'Pb209' = 209, 'Bi209' = 209, 'Rn217' = 217, 'Tl209' = 209, 'Lu177' = 177, 'Hf177' = 177, j12 = 227, j13 = 227, j14 = 223, j15 = 223, j16 = 219, j17 = 215, j18 = 211, j19 = 211, j20 = 207, j21 = 207)
 
 
 #calculate nmoles of species
@@ -369,13 +369,63 @@ eplottimes <- times[eplotrows]
 
 
 
+##### dE/dx calculations per isotope
+
+# constants
+
+
+sol = 299792458 #m/s
+malpha = 6.64884*10^-27 #kg
+
+zbeta = 1
+e0 = 8.85419*10^-12 #C^2/(N m^2)
+echarge = 
+ion = 1.248*10^-17 #J is 78 eV for water
+Z = 6.6 #average charge for water
+Na = 6.022*10^23 #atoms/mole
+densitywater = 993333 #g/m^3
+A = 14.3333333 #atomic mass average water
+Mu = 1  #g/mol molar mass constant
+me = 9.10938*10^-31 #kg electron mass
+mwater = 2.99003*10^-36 #kg mass water
+joulesperev = 1.6*10^-19 #J/eV
+
+
+#Initial kinetic energy
+#alpha
+
+#j numbers, 1=Ac225, 2=Fr221, 3=at217, 4=bi213, 5=po213, 6=pb209, 7=bi209, 8=rn217, 9=tl209, 10=lu177, 11=
+imasses = data.frame('Ac225' = 225, 'Fr221' = 221, 'At217' = 217, 'Bi213' = 213, 'Po213' = 213, 'Pb209' = 209, 'Bi209' = 209, 'Rn217' = 217, 'Tl209' = 209, 'Lu177' = 177, 'Hf177' = 177, j12 = 227, j13 = 227, j14 = 223, j15 = 223, j16 = 219, j17 = 215, j18 = 211, j19 = 211, j20 = 207, j21 = 207)
+ienergies = data.frame(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.4227/3, epo2pb = 8.536, epb2bi = 0.644/3, eat2rn = 0.737/3, ebi2tl = 5.98, ern2po = 7.88, etl2pb = 3.976/3, ebi2tl205 = 3.137, elu2hfbeta = 0.497/3, elu2hfgamma1 = 0.208, elu2hfgamma2 = 0.113, eac2th227 = 0.044/3, eac2fr227 = 5.04, efr2ra223 = 1.149/3, eth2ra223 = 6.1466, era2rn219 = 5.97899, ern2po215 = 6.94612, epo2pb211 = 7.52626, epb2bi211 = 1.36697/3, ebi2tl207 = 6.75033, etl2pb207 = 1.41824, epb2stable = 0)
+
+
+#alpha inital
+#write either  -> ke(1000000,1,1) or ke(1000000,'eac2fr','Ac225') etc.
+v0alpha = function(e,j){((2*ienergies[,e]*(10^6)*joulesperev)/(malpha+(malpha^2)/((imasses[,j])/1000/Na)))^0.5} #ienergy is in MeV, so multiply by 10^6 and convert to J
+e0alpha = function(v){0.5*malpha*v^2}
+
+#beta initial
+lorentz0 = function(e){ienergies[,e]/0.511+1} #12 is Lu1772Hf
+v0beta = function(lorentz){sol*(1-(1/lorentz)^2)^0.5}
+
+e0beta = function(lorentz){(lorentz-1)*me*sol^2}
+  
+#Alpha dE/dx
+
+zalpha = function(v){0.0094*(v*100/10^9)^5-0.2591*(v*100/10^9)^4+1.6336*(v*100/10^9)^3-4.2678*(v*100/10^9)^2+5.0412*(v*100/10^9)-0.2426} #v is in m/s
+dedxalpha = function(){}
+vialpha = function(Ex){(2*Ex/malpha)^0.5}
+
+
+#Beta dE/dx
+lorentzi = function() 
 
 
 
 
-
-
-
+  
+  
+  
 
 wellheight = 3.16 #mm
 wellradius = 3.175^2 #mm
@@ -434,21 +484,7 @@ pmag = ((Px-px)^2+(Py-py)^2+(Pz-pz)^2)^0.5
 Lu177intensity = function(raylength){(energies['elu2hfbeta']/Lu177pathlength) * 2^(-raylength/(Lu177pathlength/1.5))} #if you use this, you have to remove the 1/3 max intensity rule to beta since this is more accurate
 #alpha from Bethe equation - https://en.wikipedia.org/wiki/Bethe_formula
 
-avelocity = 10^10 #mm/s
-lightvelocity = 3*10^11 #mm/s
-abeta = avelocity/lightvelocity   #avelocity=beta*speed of light
-epsilon = 8.85418781*10^-12 #C^2/(N*m^2)
-elementarycharge = 1.6021766208*10^-19
-restmass = 
-zcharge = 2
 
-Ionization = 78 #eV for water
-zalpha = 1 #protons
-masselectron = 
-
-alphavelocity = function(alphadistance){-alphadistance*2.222*10^11+10^10}  
-  
- 
 
 
 
