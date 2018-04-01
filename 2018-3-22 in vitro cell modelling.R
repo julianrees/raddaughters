@@ -379,7 +379,7 @@ malpha = 6.64884*10^-27 #kg
 
 zbeta = 1
 e0 = 8.85419*10^-12 #C^2/(N m^2)
-echarge = 
+echarge = 1.60218*10^-19 #C
 ion = 1.248*10^-17 #J is 78 eV for water
 Z = 6.6 #average charge for water
 Na = 6.022*10^23 #atoms/mole
@@ -389,8 +389,11 @@ Mu = 1  #g/mol molar mass constant
 me = 9.10938*10^-31 #kg electron mass
 mwater = 2.99003*10^-36 #kg mass water
 joulesperev = 1.6*10^-19 #J/eV
+mmpermeter = 1000 #mm/m
 
 
+
+maximumdistances = data.frame("Ac225" = 0.065, "Fr221" = 1, "At217" = 1, "Bi213" = 10, "Po213" = 1, "Pb209" = 10, "Bi209" = 10, "Rn217" = 10, "Tl209" = 10, "Lu177" = 0.41202 )
 #Initial kinetic energy
 #alpha
 
@@ -404,6 +407,7 @@ ienergies = data.frame(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.
 v0alpha = function(e,j){((2*ienergies[,e]*(10^6)*joulesperev)/(malpha+(malpha^2)/((imasses[,j])/1000/Na)))^0.5} #ienergy is in MeV, so multiply by 10^6 and convert to J
 e0alpha = function(v){0.5*malpha*v^2}
 
+
 #beta initial
 lorentz0 = function(e){ienergies[,e]/0.511+1} #12 is Lu1772Hf
 v0beta = function(lorentz){sol*(1-(1/lorentz)^2)^0.5}
@@ -411,13 +415,22 @@ v0beta = function(lorentz){sol*(1-(1/lorentz)^2)^0.5}
 e0beta = function(lorentz){(lorentz-1)*me*sol^2}
   
 #Alpha dE/dx
+astepsize = 0.00005 #mm
+adistances = NULL
 
+  #zalpha is the charge as a function of velocity due to picking up electrons, starts at 2, goes to 0 eventually when slow enough.
 zalpha = function(v){0.0094*(v*100/10^9)^5-0.2591*(v*100/10^9)^4+1.6336*(v*100/10^9)^3-4.2678*(v*100/10^9)^2+5.0412*(v*100/10^9)-0.2426} #v is in m/s
-dedxalpha = function(){}
-vialpha = function(Ex){(2*Ex/malpha)^0.5}
+dEadx = function(v){(((4*pi*zalpha(v)^2)/(me*v^2))*((Na*Z*densitywater)/(A*Mu))*(echarge^2/(4*pi*e0))^2*(LN((2*me*v^2)/ion)))/mmpermeter}
+
+Exa = Ex[i-1]-dExadx[i-1]*astepsize
+
+via = function(Exa){(2*Exa/malpha)^0.5}
 
 
 #Beta dE/dx
+bstepsize = 0.0001 #mm
+bdistances = NULL
+
 lorentzi = function() 
 
 
@@ -433,7 +446,7 @@ cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well
 
 
 #maximum distance travelled for vector (mm)
-maximumdistances = data.frame("Ac225" = 0.065, "Fr221" = 1, "At217" = 1, "Bi213" = 10, "Po213" = 1, "Pb209" = 10, "Bi209" = 10, "Rn217" = 10, "Tl209" = 10, "Lu177" = 0.41202 )
+
 
 pmaximumb = 2 #runif(length(times), 0, maximumdistances[,'Lu177'])
 
