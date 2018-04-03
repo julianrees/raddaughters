@@ -20,7 +20,7 @@ library(gridExtra)
 #Specific activity constants in uCi/ng
 #k10 is Lu-177, k11 is Hf-177
 
- 
+  
 # k1 = ac225
 # k2 = fr221
 # k3 = at217
