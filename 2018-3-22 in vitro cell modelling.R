@@ -20,7 +20,7 @@ library(gridExtra)
 #Specific activity constants in uCi/ng
 #k10 is Lu-177, k11 is Hf-177
 
-
+ 
 # k1 = ac225
 # k2 = fr221
 # k3 = at217
@@ -44,9 +44,9 @@ library(gridExtra)
 # k21 = pb207
 
 
-  #activity in mCi/g
+  #activity in Ci/mg
 activity = c(k1 = 58, k2 = 180000, k3 = 1600000000, k4 = 20000, k5 = 1.3*10^13, k6 = 4613, k7 = 0, k8 = 96216216216, k9 = 410000, k10 = 110, k11 = 0,
-             k12 = 0.072, k13 = 31, k14 = 27, k15 = 51, k16 = 13008439, k17 = 29461992937, k18 = 24639.1739, k19 = 416405.3549, k20 = 190584.9219, k21 = 0) 
+             k12 = 0.072, k13 = 31, k14 = 38926.9, k15 = 51.2, k16 = 13008438.4, k17 = 29461992937, k18 = 24639.1739, k19 = 416405.3549, k20 = 190584.9219, k21 = 0) 
 
 #initial activity in uCi
 uciac225 =  0.17/1000 #0.1 nCi = 220 CPM  ->>>> divide by #major species (5) if in transient equilibrium, don't include minor species.
@@ -77,8 +77,8 @@ nmoleslu177 = ucilu177/110/177
 
 #divide by mole ratio if starting at EQ (200 days), otherwise create initial non-steady state mol ratio set to start halfway in or whatever
 
-nmolesac227 = uciac227/0.072/227
-nmolesth227 = 0#0.002323661*nmolesac227
+nmolesac227 = 0#uciac227/0.072/227
+nmolesth227 = uciac227/31/227#0.002323661*nmolesac227
 nmolesfr223 = 0#3.77269E-05*nmolesac227 #isn't chelated by dota
 nmolesra223 = 0#0.00144379*nmolesac227 #isn't chelated by dota
 nmolesrn219 = 0#5.78948E-09*nmolesac227
@@ -101,7 +101,7 @@ dpmac227 = uciac227*2220000
 
 #lambda values are ln(2)/t(1/2) with t1/2 in days
 parameters = c(l1 = 0.069663033, l2 = 203.7003959, l3 = 1854115.059, l4 = 21.69852043, l5 = 14259027714, l6 = 5.118625333, l7 = 8.75554E-19, l8 = 110903548.9, l9 = 461.8842851, l10 = 0.104232659, l11 = 0,
-               l12 = 8.72237E-05, l13 = 0.03710638,l14 = 0.031992393,l15 = 0.060642798,l16 = 15123.21121,l17 = 33626005.84,l18 = 27.59862689,l19 = 466.4167944,l20 = 209.4275997,l21 = 0)
+               l12 = 8.72237E-05, l13 = 0.03710638,l14 = 46.08181,l15 = 0.060642798,l16 = 15123.21121,l17 = 33626005.84,l18 = 27.59862689,l19 = 466.4167944,l20 = 209.4275997,l21 = 0)
                
 
 
@@ -158,8 +158,8 @@ daughters = function(t, state, parameters, probabilities) {with(as.list(c(state,
 
 #Ac-227 timefame
 #timedays = 365*21.772                                     #total days for plot
-timedays = 35
-timestep = 0.01                                   #step size
+timedays = 365
+timestep = 0.1                                   #step size
 timestepout = 1/timestep                           #to make a timesout match starting at 1
 
 times = seq(0, timedays, by = timestep)     #list all points
@@ -225,16 +225,16 @@ plottimes <- times[plotrows]
 #Ac-227 are c(1,15,16,17,18,19,20,21,22,23,24,25)
 
 #Ac-225&Lu-177/Hf-177 *****#8 is Bi-209 final product
-plotout <- daughtersdata[plotrows, c(1,2,3,4,5,6,7,9,10,8,11,13,14)]
+plotout <- daughtersdata[plotrows, c(1,2,3,4,5,6,7,9,10,8,11)]#,13,14)]
 
 #Ac-227
-#plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
-#plotout = plotout[-1,] #remove first row
+plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
+plotout = plotout[-1,] #remove first row
 
 mplotout <- melt(plotout, id="times")
 colnames(mplotout) <- c("times","Species","value")
 
-
+#---- new section ----
 #plot the indivudual activities produced
 
 ggplot(mplotout, aes(x=times, y=value, by=Species))+
@@ -249,7 +249,7 @@ ggplot(mplotout, aes(x=times, y=value, by=Species))+
   scale_y_continuous(labels = scales::percent, breaks=c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Time (day)", y = "% Activity(t) / Ac225(0)", color="Species")+
+  labs(x = "Time (day)", y = "% Activity(t) / Ac-225(0)", color="Species")+
   theme(text = element_text(size=18, face = "bold"),
         axis.text.y=element_text(colour="black"),
         axis.text.x=element_text(colour="black"))+
@@ -296,7 +296,7 @@ ggplot(mout, aes(x=time, y=value, by=Species))+
 
 
 
-
+#####test#####µ
 ################
 #Total energy produced from starting amount of metal
 
@@ -593,7 +593,7 @@ plot_ly() %>%
 
 plot_ly(positions) %>% 
   add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
-            marker = list(color = '#BF382A', size = 3)) #%>% 
+            marker = list(color = 'blue', size = 3)) #%>% 
  # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
   #          marker = list(color = '#0C4B8E', size = 3))
             
