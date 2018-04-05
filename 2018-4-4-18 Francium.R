@@ -10,7 +10,6 @@ library(stats)
 library(plotly)
 library(cowplot)
 library(gridExtra)
-library(asmath)
 
 #Forces scientific notation only for >> numbers
 #options(scipen=defaults)
@@ -62,17 +61,25 @@ uciac227 = 0.002 #/8 divide by # starting @EQ (8) to get total dose equivalency,
   #For ac-227, however, there are several long lived isotopes (Th-227, Fr-223, Ra-223) which last at least 11 days. A 227 conjugation will have these isotopes
   #on the antibody as well (probably - have to look at dota efficiency for Ra-223)
 
+#3 day equilibrium numbers
+EQnum = c(1.057009e-08,3.616078e-12,3.972766e-16,3.402997e-11,5.068525e-20,1.461998e-10,2.270190e-09,5.114168e-21,3.341722e-14,7.889644e-07)
+EQratio = EQnum/1.057009e-08
 
 #assume Ac-225 only upon mAb metallation / washing.
 nmolesac225 = uciac225/58/225
-nmolesfr221 = 0 #3.42E-04*nmolesac225
-nmolesat217 = 0 #3.76E-08*nmolesac225
-nmolesbi213 = 0 #3.22E-03*nmolesac225
-nmolespo213 = 0 #4.80E-12*nmolesac225
-nmolespb209 = 0 #1.38E-02*nmolesac225
-nmolesbi209 = 0 #1/10*nmolesac225 #starting with 1 day equilibrium
-nmolesrn217 = 0 #4.84E-13*nmolesac225
-nmolestl209 = 0 #3.16E-06*nmolesac225
+nmolesfr221 = 1*EQratio[2]*nmolesac225
+nmolesat217 = EQratio[3]*nmolesac225
+nmolesbi213 = EQratio[4]*nmolesac225
+nmolespo213 = EQratio[5]*nmolesac225
+nmolespb209 = EQratio[6]*nmolesac225
+nmolesbi209 = EQratio[7]*nmolesac225 #starting with 1 day equilibrium
+nmolesrn217 = EQratio[8]*nmolesac225
+nmolestl209 = EQratio[9]*nmolesac225
+
+
+
+
+
 
 nmoleslu177 = ucilu177/110/177
 
@@ -101,7 +108,7 @@ dpmac227 = uciac227*2220000
 
 
 #lambda values are ln(2)/t(1/2) with t1/2 in days
-parameters = c(l1 = 0.069663033, l2 = 203.7003959, l3 = 1854115.059, l4 = 21.69852043, l5 = 14259027714, l6 = 5.118625333, l7 = 8.75554E-19, l8 = 110903548.9, l9 = 461.8842851, l10 = 0.104232659, l11 = 0,
+parameters = c(l1 = 0.069663033, l2 = 206.5115, l3 = 1854115, l4 = 21.69852043, l5 = 14259027714, l6 = 5.118625333, l7 = 8.75554E-19, l8 = 110903548.9, l9 = 461.8842851, l10 = 0.104232659, l11 = 0,
                l12 = 8.72237E-05,l13 = 0.03710638,l14 = 46.08181,l15 = 0.060642798,l16 = 15123.21121,l17 = 33626005.84,l18 = 27.59862689,l19 = 466.4167944,l20 = 209.4275997,l21 = 0)
 
 
@@ -156,11 +163,10 @@ daughters = function(t, state, parameters, probabilities) {with(as.list(c(state,
   list(c(dA, dB, dC, dD, dE, df, dG, dH, dI, dJ, dK, dL, dM, dN, dO, dP, dQ, dR, dS, dt, dU))
 })}
 
-##### Time scale #####
 #Ac-227 timefame
 #timedays = 365*21.772                                     #total days for plot
-timedays = 35
-timestep = 0.01                                   #step size
+timedays = 3
+timestep = 0.001                                   #step size
 timestepout = 1/timestep                           #to make a timesout match starting at 1
 
 times = seq(0, timedays, by = timestep)     #list all points
@@ -226,10 +232,10 @@ plottimes <- times[plotrows]
 #Ac-227 are c(1,15,16,17,18,19,20,21,22,23,24,25)
 
 #Ac-225&Lu-177/Hf-177 *****#8 is Bi-209 final product
-#plotout <- daughtersdata[plotrows, c(1,2,3,4,5,6,7,9,10,8,11)]#,13,14)]
+plotout <- daughtersdata[plotrows, c(1,2,3,8)]#,4,5,6,7,9,10,8,11)]#,13,14)]
 
 #Ac-227
-plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
+#plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
 plotout = plotout[-1,] #remove first row
 
 mplotout <- melt(plotout, id="times")
@@ -247,7 +253,7 @@ ggplot(mplotout, aes(x=times, y=value, by=Species))+
                       short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
   
-  scale_y_continuous(labels = scales::percent, breaks=c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))+
+  scale_y_continuous(labels = scales::percent, breaks=c(0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   labs(x = "Time (day)", y = "% Activity(t) / Ac-225(0)", color="Species")+
@@ -346,7 +352,7 @@ eplottimes <- times[eplotrows]
 
 #
 ##
-##### dE/dX modeling #####
+######
 #############  Add in spatial coordinates! Each destruction is one atom, so that works out. Each destruction starts steady state
 ######         Add in vertical weighting based on cell interactions, kd's etc.
 ##
@@ -404,6 +410,7 @@ ienergies = data.frame(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.
 
 
 #alpha inital
+#write either  -> ke(1000000,1,1) or ke(1000000,'eac2fr','Ac225') etc.
 v0alpha = function(e,j){((2*ienergies[,e]*(10^6)*joulesperev)/(malpha+(malpha^2)/((imasses[,j])/1000/Na)))^0.5} #ienergy is in MeV, so multiply by 10^6 and convert to J
 e0alpha = function(v){0.5*malpha*v^2}
 
@@ -411,75 +418,20 @@ e0alpha = function(v){0.5*malpha*v^2}
 #beta initial
 lorentz0 = function(e){ienergies[,e]/0.511+1} #12 is Lu1772Hf
 v0beta = function(lorentz){sol*(1-(1/lorentz)^2)^0.5}
+
 e0beta = function(lorentz){(lorentz-1)*me*sol^2}
   
 #Alpha dE/dx
-astepsize = 0.00008 #mm
+astepsize = 0.00005 #mm
 adistances = NULL
-dstart = 0
 
-
-#zalpha is the charge as a function of velocity due to picking up electrons, starts at 2, goes to 0 eventually when slow enough.
+  #zalpha is the charge as a function of velocity due to picking up electrons, starts at 2, goes to 0 eventually when slow enough.
 zalpha = function(v){0.0094*(v*100/10^9)^5-0.2591*(v*100/10^9)^4+1.6336*(v*100/10^9)^3-4.2678*(v*100/10^9)^2+5.0412*(v*100/10^9)-0.2426} #v is in m/s
-dEadx = function(v){(((4*pi*zalpha(v)^2)/(me*v^2))*((Na*Z*densitywater)/(A*Mu))*(echarge^2/(4*pi*e0))^2*(log((2*me*v^2)/ion)))/mmpermeter}
-dEadxstart = dEadx(v0alpha(1,1))
-dEastart = astepsize*dEadxstart
-Exa = e0alpha(v0alpha(1,1))
-valpha = function(Exa){(2*Exa/malpha)^0.5}
+dEadx = function(v){(((4*pi*zalpha(v)^2)/(me*v^2))*((Na*Z*densitywater)/(A*Mu))*(echarge^2/(4*pi*e0))^2*(LN((2*me*v^2)/ion)))/mmpermeter}
 
+Exa = Ex[i-1]-dExadx[i-1]*astepsize
 
-#dEadxtable = data.frame(dstart, dEadxstart, v0alpha(1,1), e0alpha(v0alpha(1,1)), dEastart, zalpha(v0alpha(1,1)))
-
-
-#finite difference method - start matrix with initial conditions and fill in by row until dE/dx <0
-dEadxtable = array(data=NA, nrow = 1000, ncol = 6)
-for(i in 1:nrow(dEadxtable)){
-  dEadxtable[1,1] = dstart #mm
-  dEadxtable[1,2] = dEadxstart #MeV/mm
-  dEadxtable[1,3] = v0alpha(1,1) #m/s
-  dEadxtable[1,4] = e0alpha(v0alpha(1,1)) #MeV
-  dEadxtable[1,5] = dEastart #MeV
-  dEadxtable[1,6] = zalpha(v0alpha(1,1)) #charge
-  
-  dEadxtable[i+1,1] = astepsize*i
-  dEadxtable[i+1,4] = dEadxtable[i,4]-dEadxtable[i,5] #E(x)
-  dEadxtable[i+1,3] = valpha(dEadxtable[i+1,4]) #v(E)
-  dEadxtable[i+1,6] = zalpha(dEadxtable[i+1,3]) #z(v)
-  dEadxtable[i+1,2] = dEadx(dEadxtable[i+1,3]) #dEadx(v)
-  dEadxtable[i+1,5] = (dEadxtable[i+1,1]-dEadxtable[i,1])*(dEadxtable[i+1,2]+dEadxtable[i,2])/2 #dEa
-  
-  }
-#colnames(dEadxtable) = c('dx', 'dE/dx', 'v', 'E(x)', 'deltaE(x)', 'z(v)')
-
-
-#Change to MeV
-dEadxtable = cbind(dEadxtable[,1],dEadxtable[,c(2,4)]/1000000/joulesperev)
-dEadxtable = data.frame(dEadxtable[,c(1,2)])
-colnames(dEadxtable) = c('Distance', 'Ac-225 dE/dx')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-mdEadxtable = melt(dEadxtable, id='Distance')
-colnames(mdEadxtable) = c('Distance', 'Species', 'value')
-
-
-
-
-
-
-
-
+via = function(Exa){(2*Exa/malpha)^0.5}
 
 
 #Beta dE/dx
@@ -488,27 +440,6 @@ bdistances = NULL
 
 lorentzi = function() 
 
-
-
-
-  
-  
-  
-  
-  
-ggplot(mdEadxtable, aes(x=Distance, y=value, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
-  scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color='Species')+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))  
-  
 
 
 
