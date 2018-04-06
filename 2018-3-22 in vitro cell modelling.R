@@ -568,6 +568,8 @@ dEbdxtable1 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,1,]))
 colnames(dEbdxtable1)[1] = 'Distance'
 dEbdxtable2 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,2,]))
 colnames(dEbdxtable2)[1] = 'Distance'
+
+#remove negative values from data frames
 dEbdxtable1[dEbdxtable1 <0 ] <- NA
 dEbdxtable2[dEbdxtable2 <0 ] <- NA
 
