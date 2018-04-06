@@ -10,7 +10,7 @@ library(stats)
 library(plotly)
 library(cowplot)
 library(gridExtra)
-library(asmath)
+#library(asmath)
 
 #Forces scientific notation only for >> numbers
 #options(scipen=defaults)
@@ -50,9 +50,9 @@ activity = c(k1 = 58, k2 = 176026.2, k3 = 1609541800, k4 = 20000, k5 = 1.3*10^13
              k12 = 0.072, k13 = 31, k14 = 38926.9, k15 = 51.2, k16 = 13008438.4, k17 = 29461992937, k18 = 24639.1739, k19 = 416405.3549, k20 = 190584.9219, k21 = 0) 
 
 #initial activity in uCi
-uciac225 =  0.17/1000 #0.1 nCi = 220 CPM  ->>>> divide by #major species (5) if in transient equilibrium, don't include minor species.
-ucilu177 = 21/1000 
-uciac227 = 0.002 #/8 divide by # starting @EQ (8) to get total dose equivalency, don't include minor species.
+uciac225 =  0.17 #0.1 nCi = 220 CPM  ->>>> divide by #major species (5) if in transient equilibrium, don't include minor species.
+ucilu177 = 21 
+uciac227 = 1 #/8 divide by # starting @EQ (8) to get total dose equivalency, don't include minor species.
 
 #Initial nmoles of actinium-225
 #use the mol ratios #agged out to start at transient equilibiurm - but change the uciac225 starting activity accordingly as well.
@@ -344,6 +344,33 @@ colnames(edaughtersdata) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "
 eplotrows = unique(round(lseq(1, length(timesout), 1000)))
 eplottimes <- times[eplotrows]
 
+
+#destructions per day vs days
+rAc225 = Ac225*dpmac225*(probabilities[1])*1440
+rFr221 = Fr221*dpmac225*(probabilities[2])*1440
+rAt217 = At217*dpmac225*(probabilities[3]+energiesprobabilities[7])*1440
+rBi213 = Bi213*dpmac225*(probabilities[4]+energiesprobabilities[8])*1440
+rPo213 = Po213*dpmac225*(probabilities[5])*1440
+rPb209 = Pb209*dpmac225*(probabilities[6])*1440
+rBi209 = Bi209*dpmac225*(probabilities[11])*1440
+rRn217 = Rn217*dpmac225*(probabilities[9])*1440
+rTl209 = Tl209*dpmac225*(probabilities[10])*1440
+rSUM = (rAc225+rFr221+rAt217+rBi213+rPo213+rPb209+rBi209+rRn217+rTl209)
+rLu177 = Lu177*dpmlu177*(probabilities[12])*1440
+
+rdaughtersdata = data.frame(times)
+rdaughtersdata = cbind(rdaughtersdata, rAc225, rFr221, rAt217, rBi213, rPo213, rPb209, rBi209, rRn217, rTl209, rSUM, rLu177)
+colnames(edaughtersdata) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "Lu-177 (20 µCi)")
+
+rplotrows = unique(round(lseq(1, length(timesout), 1000)))
+rplottimes <- times[rplotrows]
+
+rplotout <- rdaughtersdata[rplotrows, c(1:12)]
+colnames(rplotout) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "Lu-177 (20 µCi)")
+
+#colnames(rplotout)[1] = "times"
+
+
 #
 ##
 ##### dE/dX modeling #####
@@ -394,7 +421,7 @@ mmpermeter = 1000 #mm/m
 
 
 
-#maximumdistances = data.frame("Ac-Fr" = 1.2, "Fr-At" = 1.2, "At-Bi" = 1.2, "Bi213" = 10, "Po213" = 1.2, "Pb209" = 10, "Bi209" = 10, "Rn217" = 1.2, "Tl209" = 10, "Lu177" = 0.41202 )
+
 #Initial kinetic energy
 #alpha
 
@@ -455,7 +482,7 @@ valpha = function(Exa){(2*Exa/malpha)^0.5}
 bstepsize = 0.00001 #mm
 bdistances = NULL
 
-zbeta = 1
+
 #Exb = function(e){e0beta(lorentz0(e))}
 dEbdx = function(v,Exb){((2*pi/(v^2*me))*(Na*Z*densitywater/(A*Mu))*((echarge^2)/(4*pi*e0))^2)*(log(((me*v^2*Exb)/(2*ion^2))*(1+(Exb/(me*sol^2)))^2)-log(2)*((1-(v/sol)^2)^0.5-(1-(v/sol)^2)/2)+((1-(1-(v/sol)^2)^0.5)^2)/16)/mmpermeter}
 dEbdxstart = function(j){dEbdx(v0beta(lorentz0(j)),e0beta(lorentz0(j)))}
@@ -600,13 +627,11 @@ dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRU
   
   
   
-  
-  
 
+#### Geometric Modeling ####
 
-
-
-  
+maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
+halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10]))/8  
   
 
 wellheight = 3.16 #mm
@@ -617,11 +642,8 @@ cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well
 #maximum distance travelled for vector (mm)
 
 
-pmaximumb = 2 #runif(length(times), 0, maximumdistances[,'Lu177'])
+pmaximumb = 7.476779 #runif(length(times), 0, maximumdistances[,'Lu177'])
 
-
-Lu177pathlength =  #mm on average
-Lu177halfdistance = maximumdistances[,'Lu177']
 
 #point coordinates used for ALL destructions
 rho = sqrt(runif(length(times), 0, wellradius))
@@ -663,25 +685,16 @@ pmag = ((Px-px)^2+(Py-py)^2+(Pz-pz)^2)^0.5
 #still using 1/3 max beta energy since it's a distribution and most aren't that energenic, most are 1/3 as energetic as the max.
 
 #beta using ionization depletion from - http://www.physics.smu.edu/~scalise/emmanual/radioactivity/lab.html
-Lu177intensity = function(raylength){(energies['elu2hfbeta']/Lu177pathlength) * 2^(-raylength/(Lu177pathlength/1.5))} #if you use this, you have to remove the 1/3 max intensity rule to beta since this is more accurate
-#alpha from Bethe equation - https://en.wikipedia.org/wiki/Bethe_formula
 
 
+#energies -> i = 'elu2hfbeta' or order of 
+
+#i = c(7,10,6,12), and 
+#j =c(7,8,9,10)
+betaintensity = function(i,j,raylength){(energies[i]/maximumdistances[j]) * 2^(-raylength/(halfdistances[j-6]))} #MeV/mm
+alphaintensity = 
 
 
-
-
-
-
-
-
-Ac225intensity = function(raylength){(energies['eac2fr']/maximumdistances[,'Ac225'])}
-
-
-
-#Ac225intensity = function(raylength){(energies['eac2fr']/Ac225pathlength) * (raylength^0.05)-((energies['eac2fr']/Ac225pathlength))/(1+(raylength/Ac225pathlength)^(-10))}
-#betaintensity = function(raylength){energies['elu2hfbeta']/betapathlength-((energies['elu2hfbeta']/betapathlength))/(1+(raylength/(betapathlength/4))^(-1))} #MeV/mm
-#alphaintensity = function(raylength){energies['eac2fr']/alphapathlength-((energies['eac2fr']/alphapathlength))/(1+(raylength/alphapathlength)^(-10))} #MeV/mm
 
 distancesalpha = c(lseq(0.001,1,1000))
 intensityAc225 = data.frame(distancesalpha,Ac225intensity(distancesalpha))
