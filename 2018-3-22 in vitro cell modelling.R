@@ -394,113 +394,134 @@ mmpermeter = 1000 #mm/m
 
 
 
-maximumdistances = data.frame("Ac225" = 0.065, "Fr221" = 1, "At217" = 1, "Bi213" = 10, "Po213" = 1, "Pb209" = 10, "Bi209" = 10, "Rn217" = 10, "Tl209" = 10, "Lu177" = 0.41202 )
+#maximumdistances = data.frame("Ac-Fr" = 1.2, "Fr-At" = 1.2, "At-Bi" = 1.2, "Bi213" = 10, "Po213" = 1.2, "Pb209" = 10, "Bi209" = 10, "Rn217" = 1.2, "Tl209" = 10, "Lu177" = 0.41202 )
 #Initial kinetic energy
 #alpha
 
 #j numbers, 1=Ac225, 2=Fr221, 3=at217, 4=bi213, 5=po213, 6=pb209, 7=bi209, 8=rn217, 9=tl209, 10=lu177, 11=
-imasses = data.frame('Ac225' = 225, 'Fr221' = 221, 'At217' = 217, 'Bi213' = 213, 'Po213' = 213, 'Pb209' = 209, 'Bi209' = 209, 'Rn217' = 217, 'Tl209' = 209, 'Lu177' = 177, 'Hf177' = 177, j12 = 227, j13 = 227, j14 = 223, j15 = 223, j16 = 219, j17 = 215, j18 = 211, j19 = 211, j20 = 207, j21 = 207)
-ienergies = data.frame(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.4227/3, epo2pb = 8.536, epb2bi = 0.644/3, eat2rn = 0.737/3, ebi2tl = 5.98, ern2po = 7.88, etl2pb = 3.976/3, ebi2tl205 = 3.137, elu2hfbeta = 0.497/3, elu2hfgamma1 = 0.208, elu2hfgamma2 = 0.113, eac2th227 = 0.044/3, eac2fr227 = 5.04, efr2ra223 = 1.149/3, eth2ra223 = 6.1466, era2rn219 = 5.97899, ern2po215 = 6.94612, epo2pb211 = 7.52626, epb2bi211 = 1.36697/3, ebi2tl207 = 6.75033, etl2pb207 = 1.41824, epb2stable = 0)
+imasses = matrix(c('Ac225' = 225, 'Fr221' = 221, 'At217' = 217, 'Bi213' = 213, 'Po213' = 213, 'Pb209' = 209, 'Bi209' = 209, 'Rn217' = 217, 'Tl209' = 209, 'Lu177' = 177, 'Hf177' = 177, j12 = 227, j13 = 227, j14 = 223, j15 = 223, j16 = 219, j17 = 215, j18 = 211, j19 = 211, j20 = 207, j21 = 207))
+ienergies = matrix(c(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.4227/3, epo2pb = 8.536, epb2bi = 0.644/3, eat2rn = 0.737/3, ebi2tl = 5.98, ern2po = 7.88, etl2pb = 3.976/3, ebi2tl205 = 3.137, elu2hfbeta = 0.497/3, elu2hfgamma1 = 0.208, elu2hfgamma2 = 0.113, eac2th227 = 0.044/3, eac2fr227 = 5.04, efr2ra223 = 1.149/3, eth2ra223 = 6.1466, era2rn219 = 5.97899, ern2po215 = 6.94612, epo2pb211 = 7.52626, epb2bi211 = 1.36697/3, ebi2tl207 = 6.75033, etl2pb207 = 1.41824, epb2stable = 0))
+
+alphamassenergytable = matrix(NA, nrow=2, ncol=6)
+alphamassenergytable = rbind(c(imasses[1],imasses[2],imasses[3],imasses[4],imasses[5],imasses[8]),c(ienergies[1],ienergies[2],ienergies[3],ienergies[8],ienergies[5],ienergies[9]))
+
+#alpha
+# mass
+# 1 2 3 4 5 8
+# energy
+# 1 2 3 8 5 9
+
+#beta
+# mass
+# 3 9 6 10
+# energy
+# 7 10 6 
+
+#At2Rn, Tl2Pb, Pb2Bi, Lu2Hf
+
+betamassenergytable = matrix(data=NA, nrow=2, ncol=4)
+betamassenergytable = rbind(c(imasses[3],imasses[9],imasses[6],imasses[10]),c(ienergies[7],ienergies[10],ienergies[6],ienergies[12]))
+
+#for all
+dstart = 0
 
 
 #alpha inital
-v0alpha = function(e,j){((2*ienergies[,e]*(10^6)*joulesperev)/(malpha+(malpha^2)/((imasses[,j])/1000/Na)))^0.5} #ienergy is in MeV, so multiply by 10^6 and convert to J
+v0alpha = function(e,j){((2*alphamassenergytable[2,e]*(10^6)*joulesperev)/(malpha+(malpha^2)/((alphamassenergytable[1,j])/1000/Na)))^0.5} #ienergy is in MeV, so multiply by 10^6 and convert to J
 e0alpha = function(v){0.5*malpha*v^2}
 
 
 #beta initial
-lorentz0 = function(e){ienergies[,e]/0.511+1} #12 is Lu1772Hf
+lorentz0 = function(e){betamassenergytable[2,e]/0.511+1}
 v0beta = function(lorentz){sol*(1-(1/lorentz)^2)^0.5}
 e0beta = function(lorentz){(lorentz-1)*me*sol^2}
   
 #Alpha dE/dx
-astepsize = 0.00008 #mm
+astepsize = 0.0001 #mm
 adistances = NULL
-dstart = 0
+
 
 
 #zalpha is the charge as a function of velocity due to picking up electrons, starts at 2, goes to 0 eventually when slow enough.
 zalpha = function(v){0.0094*(v*100/10^9)^5-0.2591*(v*100/10^9)^4+1.6336*(v*100/10^9)^3-4.2678*(v*100/10^9)^2+5.0412*(v*100/10^9)-0.2426} #v is in m/s
 dEadx = function(v){(((4*pi*zalpha(v)^2)/(me*v^2))*((Na*Z*densitywater)/(A*Mu))*(echarge^2/(4*pi*e0))^2*(log((2*me*v^2)/ion)))/mmpermeter}
-dEadxstart = dEadx(v0alpha(1,1))
-dEastart = astepsize*dEadxstart
-Exa = e0alpha(v0alpha(1,1))
+dEadxstart = function(e,j){dEadx(v0alpha(e,j))}
+dEastart = function(e,j){astepsize*dEadxstart(e,j)}
 valpha = function(Exa){(2*Exa/malpha)^0.5}
-
-
-#dEadxtable = data.frame(dstart, dEadxstart, v0alpha(1,1), e0alpha(v0alpha(1,1)), dEastart, zalpha(v0alpha(1,1)))
-
-
-#finite difference method - start matrix with initial conditions and fill in by row until dE/dx <0
-dEadxtable = array(data=NA, nrow = 1000, ncol = 6)
-for(i in 1:nrow(dEadxtable)){
-  dEadxtable[1,1] = dstart #mm
-  dEadxtable[1,2] = dEadxstart #MeV/mm
-  dEadxtable[1,3] = v0alpha(1,1) #m/s
-  dEadxtable[1,4] = e0alpha(v0alpha(1,1)) #MeV
-  dEadxtable[1,5] = dEastart #MeV
-  dEadxtable[1,6] = zalpha(v0alpha(1,1)) #charge
-  
-  dEadxtable[i+1,1] = astepsize*i
-  dEadxtable[i+1,4] = dEadxtable[i,4]-dEadxtable[i,5] #E(x)
-  dEadxtable[i+1,3] = valpha(dEadxtable[i+1,4]) #v(E)
-  dEadxtable[i+1,6] = zalpha(dEadxtable[i+1,3]) #z(v)
-  dEadxtable[i+1,2] = dEadx(dEadxtable[i+1,3]) #dEadx(v)
-  dEadxtable[i+1,5] = (dEadxtable[i+1,1]-dEadxtable[i,1])*(dEadxtable[i+1,2]+dEadxtable[i,2])/2 #dEa
-  
-  }
-#colnames(dEadxtable) = c('dx', 'dE/dx', 'v', 'E(x)', 'deltaE(x)', 'z(v)')
-
-
-#Change to MeV
-dEadxtable = cbind(dEadxtable[,1],dEadxtable[,c(2,4)]/1000000/joulesperev)
-dEadxtable = data.frame(dEadxtable[,c(1,2)])
-colnames(dEadxtable) = c('Distance', 'Ac-225 dE/dx')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-mdEadxtable = melt(dEadxtable, id='Distance')
-colnames(mdEadxtable) = c('Distance', 'Species', 'value')
-
-
-
-
-
-
-
-
+#Exa = e0alpha(v0alpha(1,1))
 
 
 #Beta dE/dx
-bstepsize = 0.0001 #mm
+bstepsize = 0.00001 #mm
 bdistances = NULL
 
-lorentzi = function() 
+zbeta = 1
+#Exb = function(e){e0beta(lorentz0(e))}
+dEbdx = function(v,Exb){((2*pi/(v^2*me))*(Na*Z*densitywater/(A*Mu))*((echarge^2)/(4*pi*e0))^2)*(log(((me*v^2*Exb)/(2*ion^2))*(1+(Exb/(me*sol^2)))^2)-log(2)*((1-(v/sol)^2)^0.5-(1-(v/sol)^2)/2)+((1-(1-(v/sol)^2)^0.5)^2)/16)/mmpermeter}
+dEbdxstart = function(j){dEbdx(v0beta(lorentz0(j)),e0beta(lorentz0(j)))}
+dEbstart = function(j){bstepsize*dEbdxstart(j)}
+vbeta = function(lorentzi){sol*(1-(1/lorentzi)^2)^0.5}
+lorentzi = function(Exb){Exb/(me*sol^2)+1}
 
+# testarray = array(data=seq(1,24,1), dim=c(2,3,4))
+# dimnames(testarray) = list(c('A','B'),c('C','D','E'),c('f','g','h','i'))
+# dimnames(testarray) = list(c('a','b','c'),c('d','e','f'),c('g','h','i'),c('j','k','l'))
 
+# testarray = array(NA,dim=c(2,6,6))
+# for(j in 1:6){
+#   for(i in 1:6){
+#     testarray[1,i,j] = i
+#     testarray[2,i,j] = i+1
+#   }
+# }
 
+#dEadxtable = data.frame(dstart, dEadxstart, v0alpha(1,1), e0alpha(v0alpha(1,1)), dEastart, zalpha(v0alpha(1,1)))
 
+##### Alpha dE/dx #####
+#finite difference method - start matrix with initial conditions and fill in by row until dE/dx <0
+#column 7 is integration of dE/dx by stepsize
+dEadxtable = array(data=NA, dim=c(1250,7,6), dimnames=list(NULL,c('Distance (mm)', 'dE/dx (MeV/mm)', 'Velocity (m/s)', 'E(x) (MeV)', 'deltaE(x) (MeV)', 'Charge', 'Energy Integration'),c("Ac-Fr", "Fr-At", "At-Bi", "Bi-Tl", "Po-Pb", "Rn-Po")))
+for(j in 1:6){
+for(i in 1:(nrow(dEadxtable)-1)){
+  dEadxtable[1,1,j] = dstart #mm
+  dEadxtable[1,2,j] = dEadxstart(j,j) #MeV/mm
+  dEadxtable[1,3,j] = v0alpha(j,j) #m/s
+  dEadxtable[1,4,j] = e0alpha(v0alpha(j,j)) #MeV
+  dEadxtable[1,5,j] = dEastart(j,j) #MeV
+  dEadxtable[1,6,j] = zalpha(v0alpha(j,j)) #charge
+  dEadxtable[1,7,j] = 0
   
-  
-  
-  
-  
-ggplot(mdEadxtable, aes(x=Distance, y=value, by=Species))+
+  dEadxtable[i+1,1,j] = astepsize*i
+  dEadxtable[i+1,4,j] = dEadxtable[i,4,j]-dEadxtable[i,5,j] #E(x)
+  dEadxtable[i+1,3,j] = valpha(dEadxtable[i+1,4,j]) #v(E)
+  dEadxtable[i+1,6,j] = zalpha(dEadxtable[i+1,3,j]) #z(v)
+  dEadxtable[i+1,2,j] = dEadx(dEadxtable[i+1,3,j]) #dEadx(v)
+  dEadxtable[i+1,5,j] = (dEadxtable[i+1,1,j]-dEadxtable[i,1,j])*(dEadxtable[i+1,2,j]+dEadxtable[i,2,j])/2 #dEa
+  dEadxtable[i+1,7,j] = ((dEadxtable[i+1,1,j]-dEadxtable[i,1,j])/8)*(dEadxtable[i,2,j]+3*((2*dEadxtable[i,2,j]+dEadxtable[i+1,2,j])/3)+3*((dEadxtable[i,2,j]+2*dEadxtable[i+1,2,j])/3)+dEadxtable[i+1,2,j])
+    
+}
+}
+#colnames(dEadxtable) = c('dx', 'dE/dx', 'v', 'E(x)', 'deltaE(x)', 'z(v)')
+
+#Change to MeV for dE/dx and integration
+dEadxtablemev = dEadxtable[,c(2,7),]/1000000/joulesperev
+dEadxtable1 = data.frame(cbind(dEadxtable[,1,1],dEadxtablemev[,1,]))
+colnames(dEadxtable1)[1] = 'Distance'
+dEadxtable2 = data.frame(cbind(dEadxtable[,1,1],dEadxtablemev[,2,]))
+colnames(dEadxtable2)[1] = 'Distance'
+
+#1 is dE/dx
+mdEadxtable1 = melt(dEadxtable1, id='Distance')
+colnames(mdEadxtable1) = c('Distance', 'Species', 'value')
+#2 is integrated dE/dx
+mdEadxtable2 = melt(dEadxtable2, id='Distance')
+colnames(mdEadxtable2) = c('Distance', 'Species', 'value')
+
+ggplot(mdEadxtable1, aes(x=Distance, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
-  scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
+  scale_x_continuous()+
+  scale_y_continuous()+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   labs(x = "Distance (mm)", y = "LET (MeV/mm)", color='Species')+
@@ -512,7 +533,77 @@ ggplot(mdEadxtable, aes(x=Distance, y=value, by=Species))+
 
 
 
+
+##### Beta dE/dx #####
+#At2Rn, Tl2Pb, Pb2Bi, Lu2Hf
+
+#finite difference method - start matrix with initial conditions and fill in by row until dE/dx <0
+#column 7 is integration of dE/dx by stepsize
+dEbdxtable = array(data=NA, dim=c(2500,7,4), dimnames=list(NULL,c('Distance (mm)', 'dE/dx (MeV/mm)', 'Velocity (m/s)', 'E(x) (MeV)', 'deltaE(x) (MeV)', 'Charge', 'Energy Integration'),c("At-Rn", "Tl-Pb", "Pb-Bi", "Lu-Hf")))
+for(j in 1:4){
+  for(i in 1:(nrow(dEbdxtable)-1)){
+    dEbdxtable[1,1,j] = dstart #mm
+    dEbdxtable[1,2,j] = dEbdxstart(j) #MeV/mm
+    dEbdxtable[1,3,j] = v0beta(lorentz0(j)) #m/s
+    dEbdxtable[1,4,j] = e0beta(lorentz0(j)) #MeV
+    dEbdxtable[1,5,j] = dEbstart(j) #MeV
+    dEbdxtable[1,6,j] = zbeta #charge
+    dEbdxtable[1,7,j] = 0
+    
+    dEbdxtable[i+1,1,j] = bstepsize*i^1.75
+    dEbdxtable[i+1,4,j] = dEbdxtable[i,4,j]-dEbdxtable[i,5,j] #E(x)
+    dEbdxtable[i+1,3,j] = vbeta(lorentzi(dEbdxtable[i+1,4,j])) #v(E)
+    dEbdxtable[i+1,6,j] = zbeta #z(v)
+    dEbdxtable[i+1,2,j] = dEbdx(dEbdxtable[i+1,3,j],dEbdxtable[i+1,4,j]) #dEadx(v,E(x))
+    dEbdxtable[i+1,5,j] = (dEbdxtable[i+1,1,j]-dEbdxtable[i,1,j])*(dEbdxtable[i+1,2,j]+dEbdxtable[i,2,j])/2 #dEa
+    dEbdxtable[i+1,7,j] = ((dEbdxtable[i+1,1,j]-dEbdxtable[i,1,j])/8)*(dEbdxtable[i,2,j]+3*((2*dEbdxtable[i,2,j]+dEbdxtable[i+1,2,j])/3)+3*((dEbdxtable[i,2,j]+2*dEbdxtable[i+1,2,j])/3)+dEbdxtable[i+1,2,j])
+    
+  }
+}
+#colnames(dEadxtable) = c('dx', 'dE/dx', 'v', 'E(x)', 'deltaE(x)', 'z(v)')
+
+#Change to MeV for dE/dx and integration
+dEbdxtablemev = dEbdxtable[,c(2,7),]/1000000/joulesperev
+dEbdxtable1 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,1,]))
+colnames(dEbdxtable1)[1] = 'Distance'
+dEbdxtable2 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,2,]))
+colnames(dEbdxtable2)[1] = 'Distance'
+dEbdxtable1[dEbdxtable1 <0 ] <- NA
+dEbdxtable2[dEbdxtable2 <0 ] <- NA
+
+
+#1 is dE/dx
+mdEbdxtable1 = melt(dEbdxtable1, id='Distance')
+colnames(mdEbdxtable1) = c('Distance', 'Species', 'value')
+#2 is integrated dE/dx
+mdEbdxtable2 = melt(dEbdxtable2, id='Distance')
+colnames(mdEbdxtable2) = c('Distance', 'Species', 'value')
+
+ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_log10(breaks=c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10))+
+  scale_y_log10(breaks=c(0.125, 0.25, 0.5, 1, 2, 4, 8))+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color='Species')+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))  
+
+
   
+dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRUE),sum(dEbdxtable2[,4],na.rm=TRUE),sum(dEbdxtable2[,5],na.rm=TRUE))
+  
+  
+  
+  
+  
+
+
+
+
   
   
 
