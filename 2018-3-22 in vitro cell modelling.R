@@ -345,30 +345,31 @@ eplotrows = unique(round(lseq(1, length(timesout), 1000)))
 eplottimes <- times[eplotrows]
 
 
-#destructions per day vs days
-rAc225 = Ac225*dpmac225*(probabilities[1])*1440
-rFr221 = Fr221*dpmac225*(probabilities[2])*1440
-rAt217 = At217*dpmac225*(probabilities[3]+energiesprobabilities[7])*1440
-rBi213 = Bi213*dpmac225*(probabilities[4]+energiesprobabilities[8])*1440
-rPo213 = Po213*dpmac225*(probabilities[5])*1440
-rPb209 = Pb209*dpmac225*(probabilities[6])*1440
-rBi209 = Bi209*dpmac225*(probabilities[11])*1440
-rRn217 = Rn217*dpmac225*(probabilities[9])*1440
-rTl209 = Tl209*dpmac225*(probabilities[10])*1440
-rSUM = (rAc225+rFr221+rAt217+rBi213+rPo213+rPb209+rBi209+rRn217+rTl209)
-rLu177 = Lu177*dpmlu177*(probabilities[12])*1440
+###### destructions per day vs days
+##### rplotout ####
+rAc225.Fr221 = Ac225*dpmac225*(probabilities[1])*1440
+rFr221.At217 = Fr221*dpmac225*(probabilities[2])*1440
+rAt217.Bi213 = At217*dpmac225*probabilities[3]*1440
+rAt217.Rn217 = At217*dpmac225*probabilities[7]*1440
+rBi213.Po213 = Bi213*dpmac225*probabilities[4]*1440
+rBi213.Tl209 = Bi213*dpmac225*probabilities[8]*1440
+rPo213.Pb209 = Po213*dpmac225*(probabilities[5])*1440
+rPb209.Bi209 = Pb209*dpmac225*(probabilities[6])*1440
+rRn217.Po213 = Rn217*dpmac225*(probabilities[9])*1440
+rTl209.Pb209 = Tl209*dpmac225*(probabilities[10])*1440
+rLu177.Hf177 = Lu177*dpmlu177*(probabilities[12])*1440
+
+
 
 rdaughtersdata = data.frame(times)
-rdaughtersdata = cbind(rdaughtersdata, rAc225, rFr221, rAt217, rBi213, rPo213, rPb209, rBi209, rRn217, rTl209, rSUM, rLu177)
-colnames(edaughtersdata) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "Lu-177 (20 µCi)")
+rdaughtersdata = cbind(rdaughtersdata, rAc225.Fr221, rFr221.At217, rAt217.Bi213, rAt217.Rn217, rBi213.Po213, rBi213.Tl209, rPo213.Pb209, rPb209.Bi209, rRn217.Po213, rTl209.Pb209, rLu177.Hf177)
+colnames(edaughtersdata) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
 
 rplotrows = unique(round(lseq(1, length(timesout), 1000)))
 rplottimes <- times[rplotrows]
 
 rplotout <- rdaughtersdata[rplotrows, c(1:12)]
-colnames(rplotout) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "Lu-177 (20 µCi)")
-
-#colnames(rplotout)[1] = "times"
+colnames(rplotout) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
 
 
 #
@@ -431,6 +432,7 @@ ienergies = matrix(c(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.42
 
 alphamassenergytable = matrix(NA, nrow=2, ncol=6)
 alphamassenergytable = rbind(c(imasses[1],imasses[2],imasses[3],imasses[4],imasses[5],imasses[8]),c(ienergies[1],ienergies[2],ienergies[3],ienergies[8],ienergies[5],ienergies[9]))
+colnames(alphamassenergytable) = c("Ac.Fr","Fr.At","At.Bi","Bi.Tl","Po.Pb","Rn.Po")
 
 #alpha
 # mass
@@ -446,8 +448,9 @@ alphamassenergytable = rbind(c(imasses[1],imasses[2],imasses[3],imasses[4],imass
 
 #At2Rn, Tl2Pb, Pb2Bi, Lu2Hf
 
-betamassenergytable = matrix(data=NA, nrow=2, ncol=4)
-betamassenergytable = rbind(c(imasses[3],imasses[9],imasses[6],imasses[10]),c(ienergies[7],ienergies[10],ienergies[6],ienergies[12]))
+betamassenergytable = matrix(data=NA, nrow=2, ncol=5)
+betamassenergytable = rbind(c(imasses[4],imasses[3],imasses[9],imasses[6],imasses[10]),c(ienergies[4],ienergies[7],ienergies[10],ienergies[6],ienergies[12]))
+colnames(betamassenergytable) = c("Bi.Po","At.Rn","Tl.Pb","Pb.Bi","Lu.Hf")
 
 #for all
 dstart = 0
@@ -566,8 +569,8 @@ ggplot(mdEadxtable1, aes(x=Distance, y=value, by=Species))+
 
 #finite difference method - start matrix with initial conditions and fill in by row until dE/dx <0
 #column 7 is integration of dE/dx by stepsize
-dEbdxtable = array(data=NA, dim=c(2500,7,4), dimnames=list(NULL,c('Distance (mm)', 'dE/dx (MeV/mm)', 'Velocity (m/s)', 'E(x) (MeV)', 'deltaE(x) (MeV)', 'Charge', 'Energy Integration'),c("At-Rn", "Tl-Pb", "Pb-Bi", "Lu-Hf")))
-for(j in 1:4){
+dEbdxtable = array(data=NA, dim=c(2500,7,5), dimnames=list(NULL,c('Distance (mm)', 'dE/dx (MeV/mm)', 'Velocity (m/s)', 'E(x) (MeV)', 'deltaE(x) (MeV)', 'Charge', 'Energy Integration'),c("Bi-Po", "At-Rn", "Tl-Pb", "Pb-Bi", "Lu-Hf")))
+for(j in 1:5){
   for(i in 1:(nrow(dEbdxtable)-1)){
     dEbdxtable[1,1,j] = dstart #mm
     dEbdxtable[1,2,j] = dEbdxstart(j) #MeV/mm
@@ -622,6 +625,14 @@ ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
   guides(shape=guide_legend(override.aes = list(size=3)))  
 
 
+
+
+
+
+
+
+
+
   
 dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRUE),sum(dEbdxtable2[,4],na.rm=TRUE),sum(dEbdxtable2[,5],na.rm=TRUE))
   
@@ -630,8 +641,8 @@ dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRU
 
 #### Geometric Modeling ####
 
-maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
-halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10]))/8  
+maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
+halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10],maximumdistances[11]))/8  
   
 
 wellheight = 3.16 #mm
@@ -682,67 +693,6 @@ Pz = pz - Rho/tan(theta)
 pmag = ((Px-px)^2+(Py-py)^2+(Pz-pz)^2)^0.5
 
 
-#still using 1/3 max beta energy since it's a distribution and most aren't that energenic, most are 1/3 as energetic as the max.
-
-#beta using ionization depletion from - http://www.physics.smu.edu/~scalise/emmanual/radioactivity/lab.html
-
-
-#energies -> i = 'elu2hfbeta' or order of 
-
-#i = c(7,10,6,12), and 
-#j =c(7,8,9,10)
-betaintensity = function(i,j,raylength){(energies[i]/maximumdistances[j]) * 2^(-raylength/(halfdistances[j-6]))} #MeV/mm
-alphaintensity = 
-
-
-
-distancesalpha = c(lseq(0.001,1,1000))
-intensityAc225 = data.frame(distancesalpha,Ac225intensity(distancesalpha))
-colnames(intensityAc225) = c("Distances","Ac-225")
-
-distancesbeta = c(lseq(0.001,20,500))
-intensityLu177 = data.frame(distancesbeta,Lu177intensity(distancesbeta))
-colnames(intensityLu177) = c("Distances","Lu-177")
-
-mintensityAc225 = melt(intensityAc225[1:600,], id="Distances")
-colnames(mintensityAc225) = c("Distances","Species", "LET")
-
-mintensityLu177 = melt(intensityLu177[1:384,], id="Distances")
-colnames(mintensityLu177) = c("Distances","Species", "LET")
-
-
-
-
-AcLET = ggplot(mintensityAc225, aes(x=Distances, y=LET, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
-  scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))
-
-LuLET = ggplot(mintensityLu177, aes(x=Distances, y=LET, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_continuous(breaks=c(0.0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4))+#0.4, 0.8, 1.2, 1.6))+
-  scale_y_continuous(breaks=c(0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.4))+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))
-
-grid.arrange(AcLET, LuLET, nrow = 1)
-
-write.csv(intensitytestbeta, "intensitybetarecent.csv", sep="\t")
-
 
 positions = data.frame(times, px, py, pz)
 vectors = data.frame(times, Px, Py, Pz)
@@ -785,6 +735,103 @@ plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '
       type = 'scatter3d',
       mode = 'markers', #symbols = c('circle','x','o'),
       marker = list(size = 3))#,color = I('black'), )
+
+
+
+
+##### rplotoutdistances #####
+
+rplotoutdistances <- data.frame(cbind(rplottimes, maximumdistances))
+
+#re-arrange to match rplotout species order
+rplotoutdistances = data.frame(cbind(rplotoutdistances[,c(1,2,3,4,9,8,5,6,11,7,10,12)]))
+colnames(rplotoutdistances) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
+
+#random number generator for beta particle distances
+
+for (i in 1:5){
+  for (h in 1:(length(plottimes)-1)){
+  rplotoutdistances[h,12+i] = cbind((runif(1, 0, maximumdistances[,i+6])))
+}
+}
+
+colnames(rplotoutdistances)[c(13,14,15,16,17)] = c("rintensity Bi.Po", "rintensity At.Rn", "rintensity Tl.Pb", "rintensity Pb.Bi", "rintensity Lu.Hf")
+
+#scale that intensity
+
+#still using 1/3 max beta energy since it's a distribution and most are 1/3 as energetic as the max.
+#beta using ionization depletion from - http://www.physics.smu.edu/~scalise/emmanual/radioactivity/lab.html
+
+#h = row 1:length(rplotoutdistances)
+#columns = c(6,5,11,9,12)
+#i = half distances, 7 8 9 10 11
+#j =c(1,2,3,4,5) -> Bi.po, At.Rn, Tl.Pb, Pb.Bi, Lu.Hf
+rintensitybeta = function(x,i,j){(maximumdistances[i])*2^(-x/(halfdistances[j]))} #MeV/mm
+
+for (h in 1:(length(rplottimes)-1)){
+
+  rplotoutdistances[h,6] = rintensitybeta(rplotoutdistances[h,13],7,1)
+  rplotoutdistances[h,5] = rintensitybeta(rplotoutdistances[h,14],8,2)
+  rplotoutdistances[h,11] = rintensitybeta(rplotoutdistances[h,15],9,3)
+  rplotoutdistances[h,9] = rintensitybeta(rplotoutdistances[h,16],10,4)
+  rplotoutdistances[h,12] = rintensitybeta(rplotoutdistances[h,17],11,5)
+  
+}
+
+frequencynumbers = seq(1,length(rplottimes),1)
+intensityplots = data.frame(cbind(rplotoutdistances[,c(6,5,11,9,12)]))
+intensityplotsorder = data.frame(cbind(frequencynumbers,sort(intensityplots[,1], decreasing=TRUE), sort(intensityplots[,2], decreasing=TRUE), sort(intensityplots[,3], decreasing=TRUE), sort(intensityplots[,4], decreasing=TRUE), sort(intensityplots[,5], decreasing=TRUE)))
+colnames(intensityplotsorder) = c("Frequency","Bi.Po","At.Rn","Tl.Pb","Pb.Bi","Lu.Hf")
+
+mintensityplotsorder = melt(intensityplotsorder, id="Frequency")
+colnames(mintensityplotsorder) = c("Frequency","Species","value")
+
+ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+ 
+  scale_x_continuous(breaks=c(0,2,4,6,8))+
+  scale_y_continuous(breaks=c(0,100,200,300,400,500,600))+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "Frequency", color="Species")+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))
+
+
+#can combo plot like so:
+
+
+AcLET = ggplot(mintensityAc225, aes(x=Distances, y=LET, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
+  scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))
+
+LuLET = ggplot(mintensityLu177, aes(x=Distances, y=LET, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_continuous(breaks=c(0.0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4))+#0.4, 0.8, 1.2, 1.6))+
+  scale_y_continuous(breaks=c(0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.4))+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))
+
+grid.arrange(AcLET, LuLET, nrow = 1)
+
+write.csv(intensitytestbeta, "intensitybetarecent.csv", sep="\t")
 
 
 
