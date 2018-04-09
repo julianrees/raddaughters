@@ -675,13 +675,14 @@ pc = cellheight/cos(theta) #->>pc is the path length of particle interacting thr
 pr = pz-cellheight  #radius from particle to cell surface
 pb = pr/cos(theta)
 
-########################## choose if alpha or beta distance, capital Rho is point magnitude
-Rho = pmaximumb*sin(theta) #data.frame('Ac225' = maximumdistances[,'Ac225']*sin(theta))
-
+########################## get distance from the rplotoutdistances
+Rho = function(distance)
+  {distance*sin(theta) 
+}
 #Vector coordinates
-Px = px - Rho*cos(Phi)
-Py = py - Rho*sin(Phi)
-Pz = pz - Rho/tan(theta)
+Px = px - Rho(rplotoutdistances[,-1])*cos(Phi)
+Py = py - Rho(rplotoutdistances[,-1])*sin(Phi)
+Pz = pz - Rho(rplotoutdistances[,-1])/tan(theta)
 
 
 
@@ -802,40 +803,40 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 
 #can combo plot like so:
 
-
-AcLET = ggplot(mintensityAc225, aes(x=Distances, y=LET, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
-  scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))
-
-LuLET = ggplot(mintensityLu177, aes(x=Distances, y=LET, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_continuous(breaks=c(0.0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4))+#0.4, 0.8, 1.2, 1.6))+
-  scale_y_continuous(breaks=c(0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.4))+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))
-
-grid.arrange(AcLET, LuLET, nrow = 1)
-
-write.csv(intensitytestbeta, "intensitybetarecent.csv", sep="\t")
-
-
-
-
+# 
+# AcLET = ggplot(mintensityAc225, aes(x=Distances, y=LET, by=Species))+
+#   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+#   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+#   scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
+#   scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+#   labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
+#   theme(text = element_text(size=18, face = "bold"),
+#         axis.text.y=element_text(colour="black"),
+#         axis.text.x=element_text(colour="black"))+
+#   guides(shape=guide_legend(override.aes = list(size=3)))
+# 
+# LuLET = ggplot(mintensityLu177, aes(x=Distances, y=LET, by=Species))+
+#   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+#   scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+#   scale_x_continuous(breaks=c(0.0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4))+#0.4, 0.8, 1.2, 1.6))+
+#   scale_y_continuous(breaks=c(0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.4))+
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+#   labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
+#   theme(text = element_text(size=18, face = "bold"),
+#         axis.text.y=element_text(colour="black"),
+#         axis.text.x=element_text(colour="black"))+
+#   guides(shape=guide_legend(override.aes = list(size=3)))
+# 
+# grid.arrange(AcLET, LuLET, nrow = 1)
+# 
+# write.csv(intensitytestbeta, "intensitybetarecent.csv", sep="\t")
+# 
+# 
+# 
+# 
 
 
 
@@ -886,7 +887,7 @@ v0 = c(2,2,2)
 v1 = c(-2,-2,-2)
 vv = data.frame(v0,v1)
 
-#circle
+#circle, rho is distance from centerpoint, z is stack height, and phi is angle from starting point
 rhoc = sqrt(runif(length(times), 0, wellradius))
 phic = runif(length(times), 0, 2*pi) #lowercase phi is the point location
 pzc = runif(length(times), 0, cellheight)
