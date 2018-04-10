@@ -10,6 +10,7 @@ library(stats)
 library(plotly)
 library(cowplot)
 library(gridExtra)
+library(abind)
 #library(asmath)
 
 #Forces scientific notation only for >> numbers
@@ -628,119 +629,26 @@ ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
 
 
 
-
-
-
-
-
   
 dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRUE),sum(dEbdxtable2[,4],na.rm=TRUE),sum(dEbdxtable2[,5],na.rm=TRUE))
   
-  
+
+
+
+
+
+
+
+
+
+
   
 
-#### Geometric Modeling ####
+##### rplotoutdistances #####
 
 maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
 halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10],maximumdistances[11]))/8  
   
-
-wellheight = 3.16 #mm
-wellradius = 3.175^2 #mm
-cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
-
-
-#maximum distance travelled for vector (mm)
-
-
-pmaximumb = 7.476779 #runif(length(times), 0, maximumdistances[,'Lu177'])
-
-
-#point coordinates used for ALL destructions
-rho = sqrt(runif(length(times), 0, wellradius))
-phi = runif(length(times), 0, 2*pi) #lowercase phi is the point location
-pz = runif(length(times), 0, wellheight)
-
-#scaling factor -- check how close to kD it is?
-pz = pz^4
-pz = pz/wellheight^4*wellheight
-#end scaling factor
-
-px <- rho*cos(phi)
-py <- rho*sin(phi)
-
-theta = runif(length(times), 0, 2*pi)
-Phi = runif(length(times), 0, 2*pi) #capital Phi is the point trajectory
-pc = cellheight/cos(theta) #->>pc is the path length of particle interacting through cells
-pr = pz-cellheight  #radius from particle to cell surface
-pb = pr/cos(theta)
-
-########################## get distance from the rplotoutdistances
-Rho = function(distance)
-  {distance*sin(theta) 
-}
-#Vector coordinates
-Px = px - Rho(rplotoutdistances[,-1])*cos(Phi)
-Py = py - Rho(rplotoutdistances[,-1])*sin(Phi)
-Pz = pz - Rho(rplotoutdistances[,-1])/tan(theta)
-
-
-
-#create an exclusionary zone for particle angles at certain positions
-#theta must be between 0 -> pi/2, and 3*pi/2 to 2*pi
-#maximum distance of b+c 
-
-#test vector magnitude
-pmag = ((Px-px)^2+(Py-py)^2+(Pz-pz)^2)^0.5
-
-
-
-positions = data.frame(times, px, py, pz)
-vectors = data.frame(times, Px, Py, Pz)
-positions1 = cbind(positions, 0)
-vectors1 = cbind(vectors, 1)
-
-colnames(positions1) = c('times', 'px', 'py', 'pz', 'zz')
-colnames(vectors1) = c('times', 'px', 'py', 'pz', 'zz')
-
-
-positionlinevector = rbind(positions1, vectors1)
-positionlinevector1 = positionlinevector[order(positionlinevector$times),]
-positionlinevector2 = do.call(rbind, by(positionlinevector1, positionlinevector1$times, rbind, NA))
-
-#control surface
-rhocirc = sqrt(wellradius)
-phicirc = runif(length(times), 0, 2*pi) #lowercase phi is the point location
-pzcirc = matrix(runif(length(times), 0, 0))
-pxcirc = rhocirc*cos(phicirc)
-pycirc = rhocirc*sin(phicirc)
-
-controlsurface = data.frame(times, pxcirc, pycirc, pzcirc)
-
-plot_ly() %>% 
-  add_trace(data = positionlinevector2, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = 'Beta', 
-            line = list(color = 'orange', width = 0.5),
-            marker = list(color = ~zz, colorscale = 'RdBu', size = 2, showscale = TRUE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
-
-
-plot_ly(positions) %>% 
-  add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
-            marker = list(color = 'blue', size = 3)) #%>% 
- # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
-  #          marker = list(color = '#0C4B8E', size = 3))
-            
-
-
-plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '#0C4B8E'),
-      type = 'scatter3d',
-      mode = 'markers', #symbols = c('circle','x','o'),
-      marker = list(size = 3))#,color = I('black'), )
-
-
-
-
-##### rplotoutdistances #####
 
 rplotoutdistances <- data.frame(cbind(rplottimes, maximumdistances))
 
@@ -749,16 +657,17 @@ rplotoutdistances = data.frame(cbind(rplotoutdistances[,c(1,2,3,4,9,8,5,6,11,7,1
 colnames(rplotoutdistances) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
 
 #random number generator for beta particle distances
-
+#5 beta particles
+#add on additional columns with random numbers from 0 to the maximum distances based on dE/dx which will give random beta particle intensity distrubiton data
 for (i in 1:5){
   for (h in 1:(length(plottimes)-1)){
-  rplotoutdistances[h,12+i] = cbind((runif(1, 0, maximumdistances[,i+6])))
-}
+    rplotoutdistances[h,12+i] = cbind((runif(1, 0, maximumdistances[,i+6])))
+  }
 }
 
 colnames(rplotoutdistances)[c(13,14,15,16,17)] = c("rintensity Bi.Po", "rintensity At.Rn", "rintensity Tl.Pb", "rintensity Pb.Bi", "rintensity Lu.Hf")
 
-#scale that intensity
+#now scale those intensity columns accordingly, and populate Beta emitting columns 6 5 11 9 12 with new scaled total distance data
 
 #still using 1/3 max beta energy since it's a distribution and most are 1/3 as energetic as the max.
 #beta using ionization depletion from - http://www.physics.smu.edu/~scalise/emmanual/radioactivity/lab.html
@@ -770,7 +679,7 @@ colnames(rplotoutdistances)[c(13,14,15,16,17)] = c("rintensity Bi.Po", "rintensi
 rintensitybeta = function(x,i,j){(maximumdistances[i])*2^(-x/(halfdistances[j]))} #MeV/mm
 
 for (h in 1:(length(rplottimes)-1)){
-
+  
   rplotoutdistances[h,6] = rintensitybeta(rplotoutdistances[h,13],7,1)
   rplotoutdistances[h,5] = rintensitybeta(rplotoutdistances[h,14],8,2)
   rplotoutdistances[h,11] = rintensitybeta(rplotoutdistances[h,15],9,3)
@@ -787,7 +696,11 @@ colnames(intensityplotsorder) = c("Frequency","Bi.Po","At.Rn","Tl.Pb","Pb.Bi","L
 mintensityplotsorder = melt(intensityplotsorder, id="Frequency")
 colnames(mintensityplotsorder) = c("Frequency","Species","value")
 
-ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
+mintensityplotsorder1 = melt(intensityplotsorder[,c(1,6)], id="Frequency")
+colnames(mintensityplotsorder1) = c("Frequency","Species","value")
+
+
+ggplot(mintensityplotsorder1, aes(x=value, y=Frequency, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+ 
   scale_x_continuous(breaks=c(0,2,4,6,8))+
@@ -841,6 +754,194 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 
 
 
+
+  
+
+#### Geometric Modeling ####
+
+
+wellheight = 3.16 #mm
+wellradius = 3.175^2 #mm
+cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
+
+
+#maximum distance travelled for vector (mm)
+
+
+pmaximumb = 7.476779 #runif(length(times), 0, maximumdistances[,'Lu177'])
+
+
+#point coordinates used for ALL destructions
+rho = sqrt(runif(length(rplottimes), 0, wellradius))
+phi = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
+pz = runif(length(rplottimes), 0, wellheight)
+
+#scaling factor -- check how close to kD it is?
+pz = pz^4
+pz = pz/wellheight^4*wellheight
+#end scaling factor
+
+px <- rho*cos(phi)
+py <- rho*sin(phi)
+
+#Create unique trajectories for all destructions, but starting at the same initial antibody point
+
+theta = data.frame(matrix(NA, ncol = 11, nrow = length(rplottimes)))
+Phi = data.frame(matrix(NA, ncol = 11, nrow = length(rplottimes)))
+
+for (j in 1:11){
+  for (i in 1:length(rplottimes)){
+  theta[i,j] = data.frame(cbind(runif(1, 0, 2*pi))) #theta is for random vertical trajectory of destruction
+  Phi[i,j] = data.frame(cbind(runif(1, 0, 2*pi)))
+}
+}
+
+
+pc = cellheight/cos(theta) #->>pc is the path length of particle interacting through cells
+pr = pz-cellheight  #radius from particle to cell surface
+pb = pr/cos(theta) #magnitude prior to cell surface interaction
+
+########################## get distance from the rplotoutdistances
+Rho = function(distance)
+  {distance*sin(theta) 
+}
+
+
+
+#Vector coordinates
+
+#example vector calcs for final positions
+# testx11 = (rplotoutdistances[1,2])*sin(theta[1,1])*cos(Phi[1,1])+px[1]
+# testx21 = (rplotoutdistances[2,2])*sin(theta[2,1])*cos(Phi[2,1])+px[2]
+
+
+
+Px = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
+Py = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
+Pz = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
+
+#rplotoutdistances at columns [2:12] to create unique output vector positions
+for (i in 1:length(rplottimes)){
+  for (j in 1:11){
+    Px[i,j] = data.frame(cbind(px[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*cos(Phi[i,j])))
+    Py[i,j] = data.frame(cbind(py[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*sin(Phi[i,j])))
+    Pz[i,j] = data.frame(cbind(pz[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])/tan(theta[i,j])))
+}
+}
+
+
+
+#create an exclusionary zone for particle angles at certain positions
+#theta must be between 0 -> pi/2, and 3*pi/2 to 2*pi
+#maximum distance of b+c 
+
+#test vector magnitude
+pmag = ((Px-px)^2+(Py-py)^2+(Pz-pz)^2)^0.5
+
+#Array of initial points, 1 column, x y z deep and rplottimes long
+positions = array(c(px,py,pz), dim = c(length(rplottimes),1,3))
+
+#Array of final points, 11 elements wide, y x z deep and rplottimes long
+vectors = array(abind(Px, Py, Pz), dim = c(length(rplottimes),11,3))
+
+#for plotting purposes, give each starting point a 0 designation, and give each other element 1:11
+
+vectorplotiLu177 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
+vectorplotfLu177 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
+
+for (j in 1:3){
+  for (i in 1:(length(plottimes)-1)){
+vectorplotiLu177[i,j] = cbind(positions[i,1,j])
+vectorplotfLu177[i,j] = rbind(vectors[i,11,j])
+#vectorplotAc225[i+2,j] = rbind(NA)
+
+}
+}
+vectorplotiLu177 = cbind(times=rplottimes,vectorplotiLu177,a=0)
+vectorplotfLu177 = cbind(times=rplottimes,vectorplotfLu177,a=1)
+vectorplotNALu177 = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,a=2)
+vectorplotallLu177 = rbind(vectorplotiLu177,vectorplotfLu177,vectorplotNALu177)
+vectorplots = vectorplotallLu177[order(vectorplotallLu177$times),]
+
+
+
+
+vectorplotiAc255 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
+vectorplotfAc255 = data.frame(matrix(NA, nrow = length(rplottimes)*10, ncol = 4))
+
+for (j in 1:3){
+  for (i in 1:(length(plottimes)-1)){
+    vectorplotiAc255[i,j] = cbind(positions[i,1,j])
+    for (k in seq(1,10)){
+      vectorplotfAc255[i+(length(rplottimes)*(k-1)),j] = vectors[i,k,j]
+      vectorplotfAc255[i+(length(rplottimes)*(k-1)),4] = k
+    }
+    #vectorplotfAc255[i,j] = rbind(vectors[i,11,j])
+    #vectorplotAc225[i+2,j] = rbind(NA)
+    
+  }
+}
+
+vectorplotiAc255 = cbind(times=rplottimes,vectorplotiAc255,X4=0)
+vectorplotfAc255 = cbind(times=rplottimes,vectorplotfAc255)
+vectorplotNAAc255 = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
+vectorplotallAc255 = data.frame(NULL)
+vectorplotallAc255 = rbind(vectorplotiAc255, vectorplotfAc255[which(vectorplotfAc255$X4 == 1),], vectorplotNAAc255)
+for (i in 2:10){
+  vectorplotallAc255 = rbind(vectorplotallAc255, vectorplotiAc255, vectorplotfAc255[which(vectorplotfAc255$X4 == i),], vectorplotNAAc255)
+}
+
+#unique(vectorplotfAc255$X4)
+
+# vectorplotallAc255 = rbind(vectorplotiAc255,vectorplotfAc255,vectorplotNAAc255)
+vectorplots = vectorplotallAc255[order(vectorplotallAc255$times),]
+
+
+
+
+colnames(vectorplots) = c('times', 'px', 'py', 'pz', 'zz')
+
+#control surface
+rhocirc = sqrt(wellradius)
+phicirc = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
+pzcirc = matrix(runif(length(rplottimes), 0, 0))
+pxcirc = rhocirc*cos(phicirc)
+pycirc = rhocirc*sin(phicirc)
+
+controlsurface = data.frame(rplottimes, pxcirc, pycirc, pzcirc)
+
+# as.character(vectorplots$zz)
+# 
+# vectorplots$zz = as.factor(vectorplots$zz)
+
+plot_ly() %>% 
+  add_trace(data = vectorplots, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~zz, 
+            line = list(color = ~zz, width = 0.5),
+            marker = list(color = ~zz, colorscale = 'RdBu', size = 2, showscale = TRUE))%>%
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
+
+
+plot_ly(positions) %>% 
+  add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
+            marker = list(color = 'blue', size = 3)) #%>% 
+ # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
+  #          marker = list(color = '#0C4B8E', size = 3))
+            
+
+
+plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '#0C4B8E'),
+      type = 'scatter3d',
+      mode = 'markers', #symbols = c('circle','x','o'),
+      marker = list(size = 3))#,color = I('black'), )
+
+
+
+
+
+
+
+
+
 #exclusion test -> this removes points that are x^2+y^2 < 1, for all columns
 #positions2 = positions[positions$px^2+positions$py^2<1,]
 
@@ -870,9 +971,9 @@ vz = Pz-pz
 
 #r = c(Px, Py, Pz) + t*vectorsline
 #or parametricly
-rx = Px+t*vx
-ry = Py+t*vy
-yz = Pz+t*vz
+rx = px+t*vx
+ry = py+t*vy
+yz = pz+t*vz
 
 
 #myfunction = function(x){2*x+1}
@@ -888,9 +989,9 @@ v1 = c(-2,-2,-2)
 vv = data.frame(v0,v1)
 
 #circle, rho is distance from centerpoint, z is stack height, and phi is angle from starting point
-rhoc = sqrt(runif(length(times), 0, wellradius))
-phic = runif(length(times), 0, 2*pi) #lowercase phi is the point location
-pzc = runif(length(times), 0, cellheight)
+rhoc = sqrt(runif(length(rplottimes), 0, wellradius))
+phic = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
+pzc = runif(length(rplottimes), 0, cellheight)
 pxc = rhoc*cos(phic)
 pyc = rhoc*sin(phic)
 
