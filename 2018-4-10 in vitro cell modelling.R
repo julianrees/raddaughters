@@ -823,14 +823,20 @@ Pz = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
 
 #rplotoutdistances at columns [2:12] to create unique output vector positions
 for (i in 1:length(rplottimes)){
-  for (j in 1:11){
+  for (j in 1:2){
     Px[i,j] = data.frame(cbind(px[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*cos(Phi[i,j])))
     Py[i,j] = data.frame(cbind(py[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*sin(Phi[i,j])))
     Pz[i,j] = data.frame(cbind(pz[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])/tan(theta[i,j])))
 }
 }
 
-
+for (i in 1:length(rplottimes)){
+  for (j in 3:11){
+    Px[i,j] = data.frame(cbind(Px[i,(j-1)] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*cos(Phi[i,j])))
+    Py[i,j] = data.frame(cbind(Py[i,(j-1)] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*sin(Phi[i,j])))
+    Pz[i,j] = data.frame(cbind(Pz[i,(j-1)] + sin(theta[i,j])*(rplotoutdistances[i,j+1])/tan(theta[i,j])))
+  }
+}
 
 
 #create an exclusionary zone for particle angles at certain positions
@@ -957,7 +963,7 @@ rownames(vectorplots1) = 1:nrow(vectorplots1)
 
 
 testmagnitude1 = ((vectorplots1$px[3]-vectorplots1$px[2])^2+(vectorplots1$py[3]-vectorplots1$py[2])^2+(vectorplots1$pz[3]-vectorplots1$pz[2])^2)^0.5
-testmagnitude2 = ((vectorplots1$px[3]-vectorplots1$px[1])^2+(vectorplots1$py[3]-vectorplots1$py[1])^2+(vectorplots1$pz[3]-vectorplots1$pz[1])^2)^0.5
+testmagnitude2 = ((vectorplots1$px[2]-vectorplots1$px[1])^2+(vectorplots1$py[2]-vectorplots1$py[1])^2+(vectorplots1$pz[2]-vectorplots1$pz[1])^2)^0.5
 
  
 #control surface
