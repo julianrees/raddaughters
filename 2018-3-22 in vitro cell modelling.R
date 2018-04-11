@@ -11,6 +11,7 @@ library(plotly)
 library(cowplot)
 library(gridExtra)
 library(abind)
+library(RColorBrewer)
 #library(asmath)
 
 #Forces scientific notation only for >> numbers
@@ -850,61 +851,75 @@ vectorplotiLu177 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
 vectorplotfLu177 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
 
 for (j in 1:3){
-  for (i in 1:(length(plottimes)-1)){
+  for (i in 1:(length(plottimes))){
 vectorplotiLu177[i,j] = cbind(positions[i,1,j])
 vectorplotfLu177[i,j] = rbind(vectors[i,11,j])
 #vectorplotAc225[i+2,j] = rbind(NA)
 
 }
 }
-vectorplotiLu177 = cbind(times=rplottimes,vectorplotiLu177,a=0)
-vectorplotfLu177 = cbind(times=rplottimes,vectorplotfLu177,a=1)
-vectorplotNALu177 = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,a=2)
+vectorplotiLu177 = cbind(times=rplottimes,vectorplotiLu177,X4=0)
+vectorplotfLu177 = cbind(times=rplottimes,vectorplotfLu177,X4=1)
+vectorplotNALu177 = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=2)
 vectorplotallLu177 = rbind(vectorplotiLu177,vectorplotfLu177,vectorplotNALu177)
-vectorplots = vectorplotallLu177[order(vectorplotallLu177$times),]
+vectorplotsLu177 = vectorplotallLu177[order(vectorplotallLu177$times),]
+colnames(vectorplotsLu177) = c('times', 'px', 'py', 'pz', 'zz')
 
 
 
-
-vectorplotiAc255 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
-vectorplotfAc255 = data.frame(matrix(NA, nrow = length(rplottimes)*10, ncol = 4))
+vectorploti = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
+vectorplotf = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
 
 for (j in 1:3){
-  for (i in 1:(length(plottimes)-1)){
-    vectorplotiAc255[i,j] = cbind(positions[i,1,j])
-    for (k in seq(1,10)){
-      vectorplotfAc255[i+(length(rplottimes)*(k-1)),j] = vectors[i,k,j]
-      vectorplotfAc255[i+(length(rplottimes)*(k-1)),4] = k
+  for (i in 1:(length(plottimes))){
+    vectorploti[i,j] = cbind(positions[i,1,j])
+    for (k in 1:10){
+      vectorplotf[i+((length(rplottimes))*(k-1)),j] = vectors[i,k,j]
+      vectorplotf[i+((length(rplottimes))*(k-1)),4] = k#colnames(rplotout[k+1])
     }
-    #vectorplotfAc255[i,j] = rbind(vectors[i,11,j])
-    #vectorplotAc225[i+2,j] = rbind(NA)
-    
   }
 }
-
-vectorplotiAc255 = cbind(times=rplottimes,vectorplotiAc255,X4=0)
-vectorplotfAc255 = cbind(times=rplottimes,vectorplotfAc255)
-vectorplotNAAc255 = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
-vectorplotallAc255 = data.frame(NULL)
-vectorplotallAc255 = rbind(vectorplotiAc255, vectorplotfAc255[which(vectorplotfAc255$X4 == 1),], vectorplotNAAc255)
-for (i in 2:10){
-  vectorplotallAc255 = rbind(vectorplotallAc255, vectorplotiAc255, vectorplotfAc255[which(vectorplotfAc255$X4 == i),], vectorplotNAAc255)
+#vectorplotf$X4 = as.number(vectorplotf$X4)
+vectorploti = cbind(times=rplottimes,vectorploti,X4=0)
+vectorplotf = cbind(times=rplottimes,vectorplotf)
+vectorplotNA = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
+vectorplotall = data.frame(NULL)
+vectorplotall = rbind(vectorploti, vectorplotf[which(vectorplotf$X4 == 1),], vectorplotNA) #colnames(rplotout[2])
+for (i in 2:10){#colnames(rplotout[3:11])){
+  vectorplotall = rbind(vectorplotall, vectorploti, vectorplotf[which(vectorplotf$X4 == i),], vectorplotNA)
 }
 
-#unique(vectorplotfAc255$X4)
+vectorplots = vectorplotall[order(vectorplotall$times),]
+colnames(vectorplots) = c('times', 'px', 'py', 'pz', 'Species')
 
-# vectorplotallAc255 = rbind(vectorplotiAc255,vectorplotfAc255,vectorplotNAAc255)
-vectorplots = vectorplotallAc255[order(vectorplotallAc255$times),]
+vectorplots1 = vectorplots
+rownames(vectorplots1) = 1:nrow(vectorplots1)
+#vectorplots1$Species = as.character(vectorplots$Species)
+
+for (i in seq(1,nrow(vectorplots1),3)){
+    vectorplots1$Species[i] = NA
+  }
+
+for (i in seq(3,nrow(vectorplots1),3)){
+  vectorplots1$Species[i] = NA
+}
+
+vectorplots1$Species = as.numeric(vectorplots1$Species)
 
 
 
+# 
+# vectorplotsLu177 = vectorplots[!vectorplots$zz==1,]
+# for (i in 2:10){
+#   vectorplotsLu177 = vectorplotsLu177[!vectorplotsLu177$zz==i,]
+# }
 
-colnames(vectorplots) = c('times', 'px', 'py', 'pz', 'zz')
+
 
 #control surface
 rhocirc = sqrt(wellradius)
 phicirc = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
-pzcirc = matrix(runif(length(rplottimes), 0, 0))
+pzcirc = matrix(runif(length(rplottimes), 0, 20/1000))
 pxcirc = rhocirc*cos(phicirc)
 pycirc = rhocirc*sin(phicirc)
 
@@ -912,28 +927,34 @@ controlsurface = data.frame(rplottimes, pxcirc, pycirc, pzcirc)
 
 # as.character(vectorplots$zz)
 # 
-# vectorplots$zz = as.factor(vectorplots$zz)
+#vectorplots$zz = as.numeric(vectorplots$Species)
 
 plot_ly() %>% 
-  add_trace(data = vectorplots, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~zz, 
-            line = list(color = ~zz, width = 0.5),
-            marker = list(color = ~zz, colorscale = 'RdBu', size = 2, showscale = TRUE))%>%
+  add_trace(data = vectorplots1, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, 
+            line = list(color = ~Species, width = 0.5),
+            marker = list(color = ~Species, colorscale = 'RdBu', size = 2, showscale = TRUE))%>%
   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
+##### geometric model figure ##### -> vectorplots$Species needs to be "numeric" for correct lines
+plot_ly() %>% 
+  add_trace(data = vectorplots1, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
+            marker = list(size = 3, showscale = FALSE),
+            line = list(width = 1, color = "#000000", showscale = FALSE))%>%
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
-plot_ly(positions) %>% 
-  add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
-            marker = list(color = 'blue', size = 3)) #%>% 
- # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
-  #          marker = list(color = '#0C4B8E', size = 3))
-            
+# plot_ly(positions) %>% 
+#   add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
+#             marker = list(color = 'blue', size = 3)) #%>% 
+#  # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
+#   #          marker = list(color = '#0C4B8E', size = 3))
+#             
 
 
-plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '#0C4B8E'),
-      type = 'scatter3d',
-      mode = 'markers', #symbols = c('circle','x','o'),
-      marker = list(size = 3))#,color = I('black'), )
-
+# plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '#0C4B8E'),
+#       type = 'scatter3d',
+#       mode = 'markers', #symbols = c('circle','x','o'),
+#       marker = list(size = 3))#,color = I('black'), )
+# 
 
 
 
