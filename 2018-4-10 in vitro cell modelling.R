@@ -785,6 +785,11 @@ pz = pz/wellheight^4*wellheight
 px <- rho*cos(phi)
 py <- rho*sin(phi)
 
+#for positionscopy
+px1 = do.call(cbind, replicate(11, px, simplify=FALSE))
+py1 = do.call(cbind, replicate(11, py, simplify=FALSE))
+pz1 = do.call(cbind, replicate(11, pz, simplify=FALSE))
+
 #Create unique trajectories for all destructions, but starting at the same initial antibody point
 
 theta = data.frame(matrix(NA, ncol = 11, nrow = length(rplottimes)))
@@ -840,6 +845,7 @@ pmag = ((Px-px)^2+(Py-py)^2+(Pz-pz)^2)^0.5
 
 #Array of initial points, 1 column, x y z deep and rplottimes long
 positions = array(c(px,py,pz), dim = c(length(rplottimes),1,3))
+positionscopy = array(abind(px1,py1,pz1), dim = c(length(rplottimes),11,3))
 
 #Array of final points, 11 elements wide, y x z deep and rplottimes long
 vectors = array(abind(Px, Py, Pz), dim = c(length(rplottimes),11,3))
@@ -1002,23 +1008,67 @@ plot_ly() %>%
 
 ##### vector pair equations #####
 
+endpoints = function(startpoints,x,vectors){startpoints + x*vectors}
+positionx = 1
+vectorpoints = array(NA, dim = dim(vectors))
 
-endpoints = function(startpoints,x,vectorpoints){startpoints + x*vectorpoints}
+for (k in 1:3){
+    for (j in 1:11){
+        for (i in 1:length(rplottimes)){
+
+            vectorpoints[i,j,k] = vectors[i,j,k]-positions[i,1,k]
+  
+        }
+    }
+}
+  
+#Find t values for intersection with 0 z plane
+
+points0t = (-positionscopy[,,3]/vectorpoints[,,3])
+points0t = array(points0t, dim = c(nrow(points0t),11,3))
+
+pointsht = (cellheight-positionscopy[,,3])/vectorpoints[,,3]
+pointsht = array(pointsht, dim = c(nrow(pointsht),11,3))
+
+
+#should all equal z=0 and then z=cellheight
+shouldequal0 = endpoints(positionscopy[,,3],points0t[,,3],vectorpoints[,,3])
+shouldequalh = endpoints(positionscopy[,,3],pointsht[,,3],vectorpoints[,,3])
+
+#insert t0 values to get positions of z=0 contact
+points0 = endpoints(positionscopy,points0t,vectorpoints)
+pointsh = endpoints(positionscopy,pointsht,vectorpoints)
+
+#should equal z = cellheight
+pointshheight = pointsh[,,3]-points0[,,3]
+
+# magnitude from positions to pointsh
+pointsmagh = ((pointsh[,,1]-positions[,,1])^2+(pointsh[,,2]-positions[,,2])^2+(pointsh[,,3]-positions[,,3])^2)^0.5
+pointsmag0 = ((points0[,,1]-positions[,,1])^2+(points0[,,2]-positions[,,2])^2+(points0[,,3]-positions[,,3])^2)^0.5
+pointsmag0h = abs(pointsmagh-pointsmag0)
 
 
 
 
 
+setz0 = -cz/Ccpoints[,3]
+
+intersection0 = c(ppx(setz0), ppy(setz0), ppz(setz0))
+
+setzh = (cellheight-cz)/Ccpoints[,3]
+
+intersectionh = c(ppx(setzh), ppy(setzh), ppz(setzh))
+
+#ray length of intersection - magnitude from intersectionh to intersection0
+raymagh = ((intersectionh[1]-intersection0[1])^2+(intersectionh[2]-intersection0[2])^2+(intersectionh[3]-intersection0[3])^2)^0.5
 
 
+#ray distance from start = magnitude from point a (lowercase) to intersection h
+raymag = ((cpoints[1]-intersectionh[1])^2+(cpoints[2]-intersectionh[2])^2+(cpoints[3]-intersectionh[3])^2)^0.5
 
+#ray energy at that distance 
 
-
-
-
-
-
-
+rayintensity = betaintensity(raymag) - betaintensity(raymagh+raymag)
 
 
 
