@@ -162,7 +162,7 @@ daughters = function(t, state, parameters, probabilities) {with(as.list(c(state,
 #Ac-227 timefame
 #timedays = 365*21.772                                     #total days for plot
 timedays = 35
-timestep = 0.001                                   #step size
+timestep = 0.01                                   #step size
 timestepout = 1/timestep                           #to make a timesout match starting at 1
 
 times = seq(0, timedays, by = timestep)     #list all points
@@ -823,19 +823,11 @@ Pz = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
 
 #rplotoutdistances at columns [2:12] to create unique output vector positions
 for (i in 1:length(rplottimes)){
-  for (j in 1:2){
+  for (j in 1:11){
     Px[i,j] = data.frame(cbind(px[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*cos(Phi[i,j])))
     Py[i,j] = data.frame(cbind(py[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*sin(Phi[i,j])))
     Pz[i,j] = data.frame(cbind(pz[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])/tan(theta[i,j])))
 }
-}
-
-for (i in 1:length(rplottimes)){
-  for (j in 3:11){
-    Px[i,j] = data.frame(cbind(Px[i,(j-1)] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*cos(Phi[i,j])))
-    Py[i,j] = data.frame(cbind(Py[i,(j-1)] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*sin(Phi[i,j])))
-    Pz[i,j] = data.frame(cbind(Pz[i,(j-1)] + sin(theta[i,j])*(rplotoutdistances[i,j+1])/tan(theta[i,j])))
-  }
 }
 
 
@@ -873,55 +865,8 @@ vectorplotsLu177 = vectorplotallLu177[order(vectorplotallLu177$times),]
 colnames(vectorplotsLu177) = c('times', 'px', 'py', 'pz', 'Species')
 
 
-# 
-# vectorploti = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
-# vectorplotf = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
-# 
-# for (j in 1:3){
-#   for (i in 1:(length(plottimes))){
-#     vectorploti[i,j] = cbind(positions[i,1,j])
-#     for (k in 1:10){
-#       vectorplotf[i+((length(rplottimes))*(k-1)),j] = vectors[i,k,j]
-#       vectorplotf[i+((length(rplottimes))*(k-1)),4] = k#colnames(rplotout[k+1])
-#     }
-#   }
-# }
-# #vectorplotf$X4 = as.number(vectorplotf$X4)
-# vectorploti = cbind(times=rplottimes,vectorploti,X4=0)
-# vectorplotf = cbind(times=rplottimes,vectorplotf)
-# vectorplotNA = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
-# vectorplotall = data.frame(NULL)
-# vectorplotall = rbind(vectorploti, vectorplotf[which(vectorplotf$X4 == 1),], vectorplotNA) #colnames(rplotout[2])
-# for (i in 2:10){#colnames(rplotout[3:11])){
-#   vectorplotall = rbind(vectorplotall, vectorploti, vectorplotf[which(vectorplotf$X4 == i),], vectorplotNA)
-# }
-# 
-# vectorplots = vectorplotall[order(vectorplotall$times),]
-# colnames(vectorplots) = c('times', 'px', 'py', 'pz', 'Species')
-# 
-# vectorplots1 = vectorplots
-# rownames(vectorplots1) = 1:nrow(vectorplots1)
-# #vectorplots1$Species = as.character(vectorplots$Species)
-# 
-# for (i in seq(1,nrow(vectorplots1),3)){
-#     vectorplots1$Species[i] = NA
-#   }
-# 
-# for (i in seq(3,nrow(vectorplots1),3)){
-#   vectorplots1$Species[i] = NA
-# }
-
-#vectorplots1$Species = as.numeric(vectorplots1$Species)
 
 
-
-# 
-# vectorplotsLu177 = vectorplots[!vectorplots$zz==1,]
-# for (i in 2:10){
-#   vectorplotsLu177 = vectorplotsLu177[!vectorplotsLu177$zz==i,]
-# }
-
-#series destructions instead of parallel.
 
 vectorploti = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
 vectorplotf = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
@@ -940,11 +885,10 @@ vectorploti = cbind(times=rplottimes,vectorploti,X4=0)
 vectorplotf = cbind(times=rplottimes,vectorplotf)
 vectorplotNA = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
 vectorplotall = data.frame(NULL)
-vectorplotall = rbind(vectorploti, vectorplotf[which(vectorplotf$X4 == 1),]) #colnames(rplotout[2])
+vectorplotall = rbind(vectorploti, vectorplotf[which(vectorplotf$X4 == 1),], vectorplotNA) #colnames(rplotout[2])
 for (i in 2:10){#colnames(rplotout[3:11])){
-  vectorplotall = rbind(vectorplotall, vectorplotf[which(vectorplotf$X4 == i),])
+  vectorplotall = rbind(vectorplotall, vectorploti, vectorplotf[which(vectorplotf$X4 == i),], vectorplotNA)
 }
-vectorplotall = rbind(vectorplotall,vectorplotNA)
 
 vectorplots = vectorplotall[order(vectorplotall$times),]
 colnames(vectorplots) = c('times', 'px', 'py', 'pz', 'Species')
@@ -953,16 +897,64 @@ vectorplots1 = vectorplots
 rownames(vectorplots1) = 1:nrow(vectorplots1)
 #vectorplots1$Species = as.character(vectorplots$Species)
 
- for (i in seq(12,nrow(vectorplots1),12)){
-   vectorplots1$Species[i] = NA
- }
-# 
-# for (i in seq(3,nrow(vectorplots1),3)){
-#   vectorplots1$Species[i] = NA
+for (i in seq(1,nrow(vectorplots1),3)){
+    vectorplots1$Species[i] = NA
+  }
+
+for (i in seq(3,nrow(vectorplots1),3)){
+  vectorplots1$Species[i] = NA
+}
+
+#vectorplots1$Species = as.numeric(vectorplots1$Species)
+
+
+# vectorplotsLu177 = vectorplots[!vectorplots$zz==1,]
+# for (i in 2:10){
+#   vectorplotsLu177 = vectorplotsLu177[!vectorplotsLu177$zz==i,]
 # }
+# 
+# #series destructions instead of parallel.
+# 
+# vectorploti = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
+# vectorplotf = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
+# 
+# for (j in 1:3){
+#   for (i in 1:(length(plottimes))){
+#     vectorploti[i,j] = cbind(positions[i,1,j])
+#     for (k in 1:10){
+#       vectorplotf[i+((length(rplottimes))*(k-1)),j] = vectors[i,k,j]
+#       vectorplotf[i+((length(rplottimes))*(k-1)),4] = k#colnames(rplotout[k+1])
+#     }
+#   }
+# }
+# #vectorplotf$X4 = as.number(vectorplotf$X4)
+# vectorploti = cbind(times=rplottimes,vectorploti,X4=0)
+# vectorplotf = cbind(times=rplottimes,vectorplotf)
+# vectorplotNA = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
+# vectorplotall = data.frame(NULL)
+# vectorplotall = rbind(vectorploti, vectorplotf[which(vectorplotf$X4 == 1),]) #colnames(rplotout[2])
+# for (i in 2:10){#colnames(rplotout[3:11])){
+#   vectorplotall = rbind(vectorplotall, vectorplotf[which(vectorplotf$X4 == i),])
+# }
+# vectorplotall = rbind(vectorplotall,vectorplotNA)
+# 
+# vectorplots = vectorplotall[order(vectorplotall$times),]
+# colnames(vectorplots) = c('times', 'px', 'py', 'pz', 'Species')
+# 
+# vectorplots1 = vectorplots
+# rownames(vectorplots1) = 1:nrow(vectorplots1)
+# #vectorplots1$Species = as.character(vectorplots$Species)
+# 
+#  for (i in seq(12,nrow(vectorplots1),12)){
+#    vectorplots1$Species[i] = NA
+#  }
+# # 
+# # for (i in seq(3,nrow(vectorplots1),3)){
+# #   vectorplots1$Species[i] = NA
+# # }
 
 
-testmagnitude1 = ((vectorplots1$px[3]-vectorplots1$px[2])^2+(vectorplots1$py[3]-vectorplots1$py[2])^2+(vectorplots1$pz[3]-vectorplots1$pz[2])^2)^0.5
+testmagnitude1 = ((vectorplots1$px[5]-vectorplots1$px[4])^2+(vectorplots1$py[5]-vectorplots1$py[4])^2+(vectorplots1$pz[5]-vectorplots1$pz[4])^2)^0.5
 testmagnitude2 = ((vectorplots1$px[2]-vectorplots1$px[1])^2+(vectorplots1$py[2]-vectorplots1$py[1])^2+(vectorplots1$pz[2]-vectorplots1$pz[1])^2)^0.5
 
  
@@ -1005,6 +997,33 @@ plot_ly() %>%
 #       mode = 'markers', #symbols = c('circle','x','o'),
 #       marker = list(size = 3))#,color = I('black'), )
 # 
+
+
+
+##### vector pair equations #####
+
+
+endpoints = function(startpoints,x,vectorpoints){startpoints + x*vectorpoints}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1094,7 +1113,7 @@ Ccpoints = t(matrix(Cpoints-cpoints))
 
 #equation of the line
 #r = c(Px, Py, Pz) + t*vectorsline
-pointseq = function(tt){tt*Ccpoints+cpoints}
+pointseq = function(tt){cpoints+tt*Ccpoints}
 
 #parametric
 ppx = function(t){cx+t*(Ccpoints[,1])}
