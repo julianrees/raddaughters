@@ -915,7 +915,7 @@ vectorplots1$Species = as.numeric(vectorplots1$Species)
 # }
 
 
-
+ 
 #control surface
 rhocirc = sqrt(wellradius)
 phicirc = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
