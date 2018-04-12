@@ -856,7 +856,11 @@ vectorplotsLu177 = vectorplotallLu177[order(vectorplotallLu177$times),]
 colnames(vectorplotsLu177) = c('times', 'px', 'py', 'pz', 'Species')
 
 
-
+for (i in 1:nrow(vectorplotsLu177)){
+  if (vectorplotsLu177[i,5] == 0 & !is.na(vectorplotsLu177[i,5])) {vectorplotsLu177[i,5] = NA}
+  if (vectorplotsLu177[i,5] == 2 & !is.na(vectorplotsLu177[i,5])) {vectorplotsLu177[i,5] = NA}
+  
+  }
 
 
 vectorploti = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
@@ -888,13 +892,14 @@ vectorplots1 = vectorplots
 rownames(vectorplots1) = 1:nrow(vectorplots1)
 #vectorplots1$Species = as.character(vectorplots$Species)
 
-for (i in seq(1,nrow(vectorplots1),3)){
-    vectorplots1$Species[i] = NA
+
+for (i in 1:nrow(vectorplots1)){
+  if (vectorplots1[i,5] == 0 & !is.na(vectorplots1[i,5])) {vectorplots1[i,5] = NA}
+  if (vectorplots1[i,5] == 11 & !is.na(vectorplots1[i,5])) {vectorplots1[i,5] = NA}
+  
   }
 
-for (i in seq(3,nrow(vectorplots1),3)){
-  vectorplots1$Species[i] = NA
-}
+
 
 #vectorplots1$Species = as.numeric(vectorplots1$Species)
 
@@ -1052,22 +1057,180 @@ for (k in 1:3){
     }
   }
 }
+
 #Exclusion 2, no magnitudes longer than rplotoutdistances to reach z = cellheight (a magnitude larger than the max to reach cell height is impossible)
 
-pointsht2 = array(pointsht1, dim=c(nrow(pointsht1),11,3))
+pointsmagh1 = array(pointsmagh, dim=c(nrow(pointsmagh),11,1))
+
+for (k in 1:1){
+  for (j in 1:11){
+    for (i in 1:nrow(pointsmagh1)){
+      if (pointsmagh1[i,j,k] > rplotoutdistances[i,j+1] & !is.na(pointsmagh1[i,j,k]) ){ pointsmagh1[i,j,k] = NA}  
+    }
+  }
+}
+
+
+#Exclusion 3, no x,y coordinates (vectors) outside of x^2+y^2=wellradius (wellradius is already ^2) & z > cell height (for vectors) & z starting (positions) > cellheight
+
+vectors1 = array(vectors, dim=c(nrow(vectors),11,3))
+vectorssq = array(NA, dim=c(nrow(vectors),11,3))
+pointshsq = array(pointsh, dim=c(nrow(pointsh),11,3))
+
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:nrow(vectors1)){
+        vectorssq[i,j,k] = vectors1[i,j,1]^2 + vectors1[i,j,2]^2
+        pointshsq[i,j,k] = pointsh[i,j,1]^2 + pointsh[i,j,2]^2
+    }
+  }
+}
+
+
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:nrow(vectors1)){
+      if (vectorssq[i,j,k] > as.numeric(wellradius) & vectors1[i,j,3] > cellheight & positions[i,1,3] > cellheight & !is.na(vectors1[i,j,k])) {vectors1[i,j,k] = NA}
+    }
+  }
+}
+
+#for positions > z cellheight, vectors < z cellheight and still x^2+y^2 > wellradius at z=cellheight
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:nrow(vectors1)){
+      if (pointshsq[i,j,k] > as.numeric(wellradius) & vectors1[i,j,3] < cellheight & !is.na(vectors1[i,j,k])) {vectors1[i,j,k] = NA}
+    }
+  }
+}
 
 
 
-#Exclusion 3, no x,y coordinates outside of x^2+y^2=wellradius (wellradius is already ^2) @ z = cell height
+
+#Update'positions' and 'vectors' with new excluded values
+  #make the exclusion arrays into either a 1 or NA
+
+pointsht1NA = pointsht1
+
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:nrow(pointsht1NA)){
+      if (is.na(pointsht1NA[i,j,k])) {pointsht1NA[i,j,k]} else {pointsht1NA[i,j,k] = 1}
+    }
+  }
+}
+
+pointsmagh1NA = array(pointsmagh1, dim=c(nrow(pointsmagh1),11,3))
+
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:nrow(pointsmagh1NA)){
+      if (is.na(pointsmagh1NA[i,j,k])) {pointsmagh1NA[i,j,k]} else {pointsmagh1NA[i,j,k] = 1}
+    }
+  }
+}
+
+vectors1NA = vectors1
+
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:nrow(vectors1NA)){
+      if (is.na(vectors1NA[i,j,k])) {vectors1NA[i,j,k]} else {vectors1NA[i,j,k] = 1}
+    }
+  }
+}
+
+#### pair up new coordinate pairs! ####
+  #lets keep the starting positions, and delete the rays, so dont modify 'positions', only 'vectors' 
+
+#create exclusion array with all factors
+vectorsallNA = vectors1NA*pointsmagh1NA*pointsht1NA
+
+#exclude vectors
+vectorsex = vectors1*vectorsallNA
 
 
+vectorplotiLu177ex = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
+vectorplotfLu177ex = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
+
+for (j in 1:3){
+  for (i in 1:(length(plottimes))){
+    vectorplotiLu177ex[i,j] = cbind(positions[i,1,j])
+    vectorplotfLu177ex[i,j] = rbind(vectorsex[i,11,j])
+    #vectorplotAc225[i+2,j] = rbind(NA)
+    
+  }
+}
+vectorplotiLu177ex = cbind(times=rplottimes,vectorplotiLu177ex,X4=0)
+vectorplotfLu177ex = cbind(times=rplottimes,vectorplotfLu177ex,X4=1)
+vectorplotNALu177ex = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=2)
+vectorplotallLu177ex = rbind(vectorplotiLu177ex,vectorplotfLu177ex,vectorplotNALu177ex)
+vectorplotsLu177ex = vectorplotallLu177ex[order(vectorplotallLu177ex$times),]
+colnames(vectorplotsLu177ex) = c('times', 'px', 'py', 'pz', 'Species')
+
+#remove numbers from NA containing rows 
+for (i in 1:nrow(vectorplotsLu177ex)){
+  if (is.na(vectorplotsLu177ex[i,4])) {vectorplotsLu177ex[i,5] = NA}
+}
+
+for (i in 1:nrow(vectorplotsLu177ex)){
+  if (vectorplotsLu177ex[i,5] == 0 & !is.na(vectorplotsLu177ex[i,5])) {vectorplotsLu177ex[i,5] = NA}
+}
+
+vectorplotiex = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
+vectorplotfex = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
+
+for (j in 1:3){
+  for (i in 1:(length(plottimes))){
+    vectorplotiex[i,j] = cbind(positions[i,1,j])
+    for (k in 1:10){
+      vectorplotfex[i+((length(rplottimes))*(k-1)),j] = vectorsex[i,k,j]
+      vectorplotfex[i+((length(rplottimes))*(k-1)),4] = k#colnames(rplotout[k+1])
+    }
+  }
+}
+#vectorplotf$X4 = as.number(vectorplotf$X4)
+vectorplotiex = cbind(times=rplottimes,vectorplotiex,X4=0)
+vectorplotfex = cbind(times=rplottimes,vectorplotfex)
+vectorplotNAex = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
+vectorplotallex = data.frame(NULL)
+vectorplotallex = rbind(vectorplotiex, vectorplotfex[which(vectorplotfex$X4 == 1),], vectorplotNAex) #colnames(rplotout[2])
+for (i in 2:10){#colnames(rplotout[3:11])){
+  vectorplotallex = rbind(vectorplotallex, vectorplotiex, vectorplotfex[which(vectorplotfex$X4 == i),], vectorplotNAex)
+}
+
+vectorplotsex = vectorplotallex[order(vectorplotallex$times),]
+colnames(vectorplotsex) = c('times', 'px', 'py', 'pz', 'Species')
+
+vectorplots1ex = vectorplotsex
+rownames(vectorplots1ex) = 1:nrow(vectorplots1ex)
+#vectorplots1$Species = as.character(vectorplots$Species)
 
 
+#remove numbers from NA containing rows 
+for (i in 1:nrow(vectorplots1ex)){
+  if (is.na(vectorplots1ex[i,4])) {vectorplots1ex[i,5] = NA}
+}
+
+for (i in 1:nrow(vectorplots1ex)){
+  if (vectorplots1ex[i,5] == 0 & !is.na(vectorplots1ex[i,5])) {vectorplots1ex[i,5] = NA}
+}
+
+#plot it
+
+plot_ly() %>% 
+  add_trace(data = vectorplotsLu177ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
+            marker = list(size = 3, showscale = FALSE),
+            line = list(width = 1, color = "#000000", showscale = FALSE))%>%
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
 
+plot_ly() %>% 
+  add_trace(data = vectorplots1ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
+            marker = list(size = 3, showscale = FALSE),
+            line = list(width = 1, color = "#000000", showscale = FALSE))%>%
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
-
-#positions2 = positions[positions$px^2+positions$py^2<1,]
 
 
 
