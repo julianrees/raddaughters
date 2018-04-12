@@ -529,7 +529,7 @@ for(i in 1:(nrow(dEadxtable)-1)){
   dEadxtable[i+1,6,j] = zalpha(dEadxtable[i+1,3,j]) #z(v)
   dEadxtable[i+1,2,j] = dEadx(dEadxtable[i+1,3,j]) #dEadx(v)
   dEadxtable[i+1,5,j] = (dEadxtable[i+1,1,j]-dEadxtable[i,1,j])*(dEadxtable[i+1,2,j]+dEadxtable[i,2,j])/2 #dEa
-  dEadxtable[i+1,7,j] = ((dEadxtable[i+1,1,j]-dEadxtable[i,1,j])/8)*(dEadxtable[i,2,j]+3*((2*dEadxtable[i,2,j]+dEadxtable[i+1,2,j])/3)+3*((dEadxtable[i,2,j]+2*dEadxtable[i+1,2,j])/3)+dEadxtable[i+1,2,j])
+  dEadxtable[i+1,7,j] = ((dEadxtable[i+1,1,j]-dEadxtable[i,1,j])/8)*(dEadxtable[i,2,j]+3*((2*dEadxtable[i,2,j]+dEadxtable[i+1,2,j])/3)+3*((dEadxtable[i,2,j]+2*dEadxtable[i+1,2,j])/3)+dEadxtable[i+1,2,j])#Simpsons 3/8 integration, just add these up between the time you are interested in to get total energy
     
 }
 }
@@ -588,7 +588,7 @@ for(j in 1:5){
     dEbdxtable[i+1,6,j] = zbeta #z(v)
     dEbdxtable[i+1,2,j] = dEbdx(dEbdxtable[i+1,3,j],dEbdxtable[i+1,4,j]) #dEadx(v,E(x))
     dEbdxtable[i+1,5,j] = (dEbdxtable[i+1,1,j]-dEbdxtable[i,1,j])*(dEbdxtable[i+1,2,j]+dEbdxtable[i,2,j])/2 #dEa
-    dEbdxtable[i+1,7,j] = ((dEbdxtable[i+1,1,j]-dEbdxtable[i,1,j])/8)*(dEbdxtable[i,2,j]+3*((2*dEbdxtable[i,2,j]+dEbdxtable[i+1,2,j])/3)+3*((dEbdxtable[i,2,j]+2*dEbdxtable[i+1,2,j])/3)+dEbdxtable[i+1,2,j])
+    dEbdxtable[i+1,7,j] = ((dEbdxtable[i+1,1,j]-dEbdxtable[i,1,j])/8)*(dEbdxtable[i,2,j]+3*((2*dEbdxtable[i,2,j]+dEbdxtable[i+1,2,j])/3)+3*((dEbdxtable[i,2,j]+2*dEbdxtable[i+1,2,j])/3)+dEbdxtable[i+1,2,j]) #Simpsons 3/8 integration, just add these up between the time you are interested in to get total energy
     
   }
 }
@@ -631,15 +631,8 @@ ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
 
 
   
-dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRUE),sum(dEbdxtable2[,4],na.rm=TRUE),sum(dEbdxtable2[,5],na.rm=TRUE))
+dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRUE),sum(dEbdxtable2[,4],na.rm=TRUE),sum(dEbdxtable2[,5],na.rm=TRUE),sum(dEbdxtable2[,6],na.rm=TRUE))
   
-
-
-
-
-
-
-
 
 
 
@@ -650,7 +643,7 @@ dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRU
 maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
 halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10],maximumdistances[11]))/8  
   
-
+#rplotoutdistances has paired magnitude data to destructions per day from rplotout
 rplotoutdistances <- data.frame(cbind(rplottimes, maximumdistances))
 
 #re-arrange to match rplotout species order
@@ -766,12 +759,6 @@ wellradius = 3.175^2 #mm
 cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
 
 
-#maximum distance travelled for vector (mm)
-
-
-pmaximumb = 7.476779 #runif(length(times), 0, maximumdistances[,'Lu177'])
-
-
 #point coordinates used for ALL destructions
 rho = sqrt(runif(length(rplottimes), 0, wellradius))
 phi = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
@@ -785,7 +772,7 @@ pz = pz/wellheight^4*wellheight
 px <- rho*cos(phi)
 py <- rho*sin(phi)
 
-#for positionscopy
+#for positionscopy to get the right number of dimensions for ease
 px1 = do.call(cbind, replicate(11, px, simplify=FALSE))
 py1 = do.call(cbind, replicate(11, py, simplify=FALSE))
 pz1 = do.call(cbind, replicate(11, pz, simplify=FALSE))
@@ -808,11 +795,9 @@ pr = pz-cellheight  #radius from particle to cell surface
 pb = pr/cos(theta) #magnitude prior to cell surface interaction
 
 ########################## get distance from the rplotoutdistances
-Rho = function(distance)
-  {distance*sin(theta) 
-}
-
-
+# Rho = function(distance)
+#   {distance*sin(theta) 
+# }
 
 #Vector coordinates
 
@@ -1029,7 +1014,7 @@ points0t = array(points0t, dim = c(nrow(points0t),11,3))
 
 pointsht = (cellheight-positionscopy[,,3])/vectorpoints[,,3]
 pointsht = array(pointsht, dim = c(nrow(pointsht),11,3))
-
+colnames(pointsht) = c(letters[1:11])
 
 #should all equal z=0 and then z=cellheight
 shouldequal0 = endpoints(positionscopy[,,3],points0t[,,3],vectorpoints[,,3])
@@ -1049,53 +1034,41 @@ pointsmag0h = abs(pointsmagh-pointsmag0)
 
 
 
+#Now we have our # of destructions per day per position (rplotout), the magnitudes traveled including beta intensity distribution (rplotdistances),
+  #and the particular coordinates of each destruction from a common antibody starting position (positions), and end points (vectors), paired coordinates (vectorplots1 / vectorplotsLu177), 
+  #and can find the coordinates where the equation of the line will meet the surface and bottom of the cells / well plates (pointsmagh / pointsmag0).
+  #Next, create exclusions tests, then plug in final vector mags across cells using integrated values from 'dEadxtable2' and 'dEbdxtable2' for each element, and add them up to get total energy. 
+  #Then, you get energy per time vs time, and integrate that to get total energy, and finally divide by consatnt to get Gy.
 
+#Exclusion 1, no negative t-value to reach cellheight, so remove point if t-value is negative and z > cellheight. This means that negative magnitude is opposite direction from 'position' to 'vectors'
+  #if z <= cell height, it's in the cell and good to go as the magnitude to reach z=0 will be positive.
 
-setz0 = -cz/Ccpoints[,3]
+pointsht1 = array(pointsht, dim=c(nrow(pointsht),11,3))
 
-intersection0 = c(ppx(setz0), ppy(setz0), ppz(setz0))
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:nrow(pointsht)){
+      if (pointsht1[i,j,k] < 0 & positions[i,1,3] > cellheight & !is.na(pointsht1[i,j,k]) ) {pointsht1[i,j,k] = NA}
+    }
+  }
+}
+#Exclusion 2, no magnitudes longer than rplotoutdistances to reach z = cellheight (a magnitude larger than the max to reach cell height is impossible)
 
-setzh = (cellheight-cz)/Ccpoints[,3]
-
-intersectionh = c(ppx(setzh), ppy(setzh), ppz(setzh))
-
-#ray length of intersection - magnitude from intersectionh to intersection0
-raymagh = ((intersectionh[1]-intersection0[1])^2+(intersectionh[2]-intersection0[2])^2+(intersectionh[3]-intersection0[3])^2)^0.5
-
-
-#ray distance from start = magnitude from point a (lowercase) to intersection h
-raymag = ((cpoints[1]-intersectionh[1])^2+(cpoints[2]-intersectionh[2])^2+(cpoints[3]-intersectionh[3])^2)^0.5
-
-#ray energy at that distance 
-
-rayintensity = betaintensity(raymag) - betaintensity(raymagh+raymag)
-
-
-
-
+pointsht2 = array(pointsht1, dim=c(nrow(pointsht1),11,3))
 
 
 
-
+#Exclusion 3, no x,y coordinates outside of x^2+y^2=wellradius (wellradius is already ^2) @ z = cell height
 
 
 
 
 
-#exclusion test -> this removes points that are x^2+y^2 < 1, for all columns
+
+
+
 #positions2 = positions[positions$px^2+positions$py^2<1,]
 
-
-
-#write inclusionary conditions for each point hitting the control surface
-
-#################positionsinclusive = positions[positions$  +  positions$  <  ,]
-
-
-# for x,y,z positions
-#x^2+y^2 <= wellradius  #this is already squared!
-#z < cellheight
-#z >= 0
 
 
 #equation of each vector -> end - start
