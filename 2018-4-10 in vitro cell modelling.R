@@ -765,8 +765,8 @@ phi = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
 pz = runif(length(rplottimes), 0, wellheight)
 
 #scaling factor -- check how close to kD it is?
-pz = pz^4
-pz = pz/wellheight^4*wellheight
+pz = pz^7
+pz = pz/wellheight^7*wellheight
 #end scaling factor
 
 px <- rho*cos(phi)
@@ -857,7 +857,7 @@ colnames(vectorplotsLu177) = c('times', 'px', 'py', 'pz', 'Species')
 
 
 for (i in 1:nrow(vectorplotsLu177)){
-  if (vectorplotsLu177[i,5] == 0 & !is.na(vectorplotsLu177[i,5])) {vectorplotsLu177[i,5] = NA}
+  #if (vectorplotsLu177[i,5] == 0 & !is.na(vectorplotsLu177[i,5])) {vectorplotsLu177[i,5] = NA}
   if (vectorplotsLu177[i,5] == 2 & !is.na(vectorplotsLu177[i,5])) {vectorplotsLu177[i,5] = NA}
   
   }
@@ -894,7 +894,7 @@ rownames(vectorplots1) = 1:nrow(vectorplots1)
 
 
 for (i in 1:nrow(vectorplots1)){
-  if (vectorplots1[i,5] == 0 & !is.na(vectorplots1[i,5])) {vectorplots1[i,5] = NA}
+  #if (vectorplots1[i,5] == 0 & !is.na(vectorplots1[i,5])) {vectorplots1[i,5] = NA}
   if (vectorplots1[i,5] == 11 & !is.na(vectorplots1[i,5])) {vectorplots1[i,5] = NA}
   
   }
@@ -1173,9 +1173,9 @@ for (i in 1:nrow(vectorplotsLu177ex)){
   if (is.na(vectorplotsLu177ex[i,4])) {vectorplotsLu177ex[i,5] = NA}
 }
 
-for (i in 1:nrow(vectorplotsLu177ex)){
-  if (vectorplotsLu177ex[i,5] == 0 & !is.na(vectorplotsLu177ex[i,5])) {vectorplotsLu177ex[i,5] = NA}
-}
+# for (i in 1:nrow(vectorplotsLu177ex)){
+#   if (vectorplotsLu177ex[i,5] == 0 & !is.na(vectorplotsLu177ex[i,5])) {vectorplotsLu177ex[i,5] = NA}
+# }
 
 vectorplotiex = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
 vectorplotfex = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
@@ -1212,23 +1212,23 @@ for (i in 1:nrow(vectorplots1ex)){
   if (is.na(vectorplots1ex[i,4])) {vectorplots1ex[i,5] = NA}
 }
 
-for (i in 1:nrow(vectorplots1ex)){
-  if (vectorplots1ex[i,5] == 0 & !is.na(vectorplots1ex[i,5])) {vectorplots1ex[i,5] = NA}
-}
+# for (i in 1:nrow(vectorplots1ex)){
+#   if (vectorplots1ex[i,5] == 0 & !is.na(vectorplots1ex[i,5])) {vectorplots1ex[i,5] = NA}
+# }
 
 #plot it
 
 plot_ly() %>% 
   add_trace(data = vectorplotsLu177ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
-            marker = list(size = 3, showscale = FALSE),
-            line = list(width = 1, color = "#000000", showscale = FALSE))%>%
+            marker = list(size = 4, showscale = FALSE),
+            line = list(width = 1.5, color = "#000000", showscale = FALSE))%>%
   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
 
 plot_ly() %>% 
   add_trace(data = vectorplots1ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
-            marker = list(size = 3, showscale = FALSE),
-            line = list(width = 1, color = "#000000", showscale = FALSE))%>%
+            marker = list(size = 4, showscale = TRUE),
+            line = list(width = 1.5, color = "#000000", showscale = FALSE))%>%
   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
 
