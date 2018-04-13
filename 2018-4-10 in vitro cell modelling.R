@@ -12,6 +12,8 @@ library(cowplot)
 library(gridExtra)
 library(abind)
 library(RColorBrewer)
+library(tidyr)
+
 #library(asmath)
 
 #Forces scientific notation only for >> numbers
@@ -161,8 +163,8 @@ daughters = function(t, state, parameters, probabilities) {with(as.list(c(state,
 ##### Time scale #####
 #Ac-227 timefame
 #timedays = 365*21.772                                     #total days for plot
-timedays = 35
-timestep = 0.01                                   #step size
+timedays = 4
+timestep = 0.001                                   #step size
 timestepout = 1/timestep                           #to make a timesout match starting at 1
 
 times = seq(0, timedays, by = timestep)     #list all points
@@ -957,11 +959,12 @@ testmagnitude2 = ((vectorplots1$px[2]-vectorplots1$px[1])^2+(vectorplots1$py[2]-
 #control surface
 rhocirc = sqrt(wellradius)
 phicirc = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
-pzcirc = matrix(runif(length(rplottimes), 0, 20/1000))
+pzcirc = matrix(runif(length(rplottimes), 0.020, 0.02))
+pzcirc0 = matrix(runif(length(rplottimes), 0, 0))
 pxcirc = rhocirc*cos(phicirc)
 pycirc = rhocirc*sin(phicirc)
 
-controlsurface = data.frame(rplottimes, pxcirc, pycirc, pzcirc)
+controlsurface = data.frame(rplottimes, pxcirc, pycirc, pzcirc, pzcirc0)
 
 # as.character(vectorplots$zz)
 # 
@@ -1000,13 +1003,13 @@ plot_ly() %>%
 
 endpoints = function(startpoints,x,vectors){startpoints + x*vectors}
 positionx = 1
-vectorpoints = array(NA, dim = dim(vectors))
+vectorpointsex = array(NA, dim = dim(vectors))
 
 for (k in 1:3){
     for (j in 1:11){
         for (i in 1:length(rplottimes)){
 
-            vectorpoints[i,j,k] = vectors[i,j,k]-positions[i,1,k]
+            vectorpointsex[i,j,k] = vectors[i,j,k]-positions[i,1,k]
   
         }
     }
@@ -1014,20 +1017,20 @@ for (k in 1:3){
   
 #Find t values for intersection with 0 z plane
 
-points0t = (-positionscopy[,,3]/vectorpoints[,,3])
+points0t = (-positionscopy[,,3]/vectorpointsex[,,3])
 points0t = array(points0t, dim = c(nrow(points0t),11,3))
 
-pointsht = (cellheight-positionscopy[,,3])/vectorpoints[,,3]
+pointsht = (cellheight-positionscopy[,,3])/vectorpointsex[,,3]
 pointsht = array(pointsht, dim = c(nrow(pointsht),11,3))
 colnames(pointsht) = c(letters[1:11])
 
 #should all equal z=0 and then z=cellheight
-shouldequal0 = endpoints(positionscopy[,,3],points0t[,,3],vectorpoints[,,3])
-shouldequalh = endpoints(positionscopy[,,3],pointsht[,,3],vectorpoints[,,3])
+shouldequal0 = endpoints(positionscopy[,,3],points0t[,,3],vectorpointsex[,,3])
+shouldequalh = endpoints(positionscopy[,,3],pointsht[,,3],vectorpointsex[,,3])
 
 #insert t0 values to get positions of z=0 contact
-points0 = endpoints(positionscopy,points0t,vectorpoints)
-pointsh = endpoints(positionscopy,pointsht,vectorpoints)
+points0 = endpoints(positionscopy,points0t,vectorpointsex)
+pointsh = endpoints(positionscopy,pointsht,vectorpointsex)
 
 #should equal z = cellheight
 pointshheight = pointsh[,,3]-points0[,,3]
@@ -1039,14 +1042,14 @@ pointsmag0h = abs(pointsmagh-pointsmag0)
 
 
 
-#Now we have our # of destructions per day per position (rplotout), the magnitudes traveled including beta intensity distribution (rplotdistances),
-  #and the particular coordinates of each destruction from a common antibody starting position (positions), and end points (vectors), paired coordinates (vectorplots1 / vectorplotsLu177), 
+#Now we have our # of destructions per day per time (rplotout), the magnitudes traveled including beta intensity distribution (rplotoutdistances),
+  #and the particular coordinates of each destruction from a common antibody starting position (positions) per time point, and end points (vectors), paired coordinates (vectorplots1 / vectorplotsLu177), 
   #and can find the coordinates where the equation of the line will meet the surface and bottom of the cells / well plates (pointsmagh / pointsmag0).
   #Next, create exclusions tests, then plug in final vector mags across cells using integrated values from 'dEadxtable2' and 'dEbdxtable2' for each element, and add them up to get total energy. 
   #Then, you get energy per time vs time, and integrate that to get total energy, and finally divide by consatnt to get Gy.
 
-#Exclusion 1, no negative t-value to reach cellheight, so remove point if t-value is negative and z > cellheight. This means that negative magnitude is opposite direction from 'position' to 'vectors'
-  #if z <= cell height, it's in the cell and good to go as the magnitude to reach z=0 will be positive.
+#Exclusion 1, no negative t-value to reach cellheight z=h, so remove point if t-value is negative and z > cellheight. This means that negative magnitude is opposite direction from 'position' to 'vectors'
+  #However, if z <= cell height, it's in the cell and good to go as the magnitude to reach z=0 will be positive even if mag to z=h is negative, and vice versa.
 
 pointsht1 = array(pointsht, dim=c(nrow(pointsht),11,3))
 
@@ -1058,14 +1061,14 @@ for (k in 1:3){
   }
 }
 
-#Exclusion 2, no magnitudes longer than rplotoutdistances to reach z = cellheight (a magnitude larger than the max to reach cell height is impossible)
+#Exclusion 2, no magnitudes longer than rplotoutdistances to reach z = cellheight (a magnitude larger than the max to reach cell height is impossible) for positions (start) z > cellheight
 
 pointsmagh1 = array(pointsmagh, dim=c(nrow(pointsmagh),11,1))
 
 for (k in 1:1){
   for (j in 1:11){
     for (i in 1:nrow(pointsmagh1)){
-      if (pointsmagh1[i,j,k] > rplotoutdistances[i,j+1] & !is.na(pointsmagh1[i,j,k]) ){ pointsmagh1[i,j,k] = NA}  
+      if (pointsmagh1[i,j,k] > rplotoutdistances[i,j+1] & positions[i,1,3] > cellheight & !is.na(pointsmagh1[i,j,k]) ){ pointsmagh1[i,j,k] = NA}  
     }
   }
 }
@@ -1166,12 +1169,31 @@ vectorplotfLu177ex = cbind(times=rplottimes,vectorplotfLu177ex,X4=1)
 vectorplotNALu177ex = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=2)
 vectorplotallLu177ex = rbind(vectorplotiLu177ex,vectorplotfLu177ex,vectorplotNALu177ex)
 vectorplotsLu177ex = vectorplotallLu177ex[order(vectorplotallLu177ex$times),]
-colnames(vectorplotsLu177ex) = c('times', 'px', 'py', 'pz', 'Species')
+vectorplotsLu177ex = cbind(vectorplotsLu177ex,vectorplotsLu177ex[,5])
+colnames(vectorplotsLu177ex) = c('times', 'px', 'py', 'pz', 'number', 'Species' )
 
 #remove numbers from NA containing rows 
 for (i in 1:nrow(vectorplotsLu177ex)){
   if (is.na(vectorplotsLu177ex[i,4])) {vectorplotsLu177ex[i,5] = NA}
 }
+for (i in 1:nrow(vectorplotsLu177ex)){
+  if (is.na(vectorplotsLu177ex[i,4])) {vectorplotsLu177ex[i,6] = NA}
+}
+
+#for Species names
+for (i in 1:nrow(vectorplotsLu177ex)){
+  if (vectorplotsLu177ex[i,6] == 0 & !is.na(vectorplotsLu177ex[i,6])) {vectorplotsLu177ex[i,6] = 'Antibody'}
+}
+for (i in 1:nrow(vectorplotsLu177ex)){
+  if (vectorplotsLu177ex[i,6] == 1 & !is.na(vectorplotsLu177ex[i,6])) {vectorplotsLu177ex[i,6] = 'Lu-177.Hf-177'}
+}
+
+# for (i in 1:nrow(vectorplotsLu177ex)){
+#   if (vectorplotsLu177ex[i,5] == 0 & !is.na(vectorplotsLu177ex[i,5])) {vectorplotsLu177ex[i,5] = NA}
+# }
+
+#vectorplotsLu177ex$Species = as.character(vectorplotsLu177ex$Species)
+
 
 # for (i in 1:nrow(vectorplotsLu177ex)){
 #   if (vectorplotsLu177ex[i,5] == 0 & !is.na(vectorplotsLu177ex[i,5])) {vectorplotsLu177ex[i,5] = NA}
@@ -1218,22 +1240,127 @@ for (i in 1:nrow(vectorplots1ex)){
 
 #plot it
 
-plot_ly() %>% 
-  add_trace(data = vectorplotsLu177ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
-            marker = list(size = 4, showscale = FALSE),
-            line = list(width = 1.5, color = "#000000", showscale = FALSE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
+plot_ly() %>% 
+  add_trace(data = vectorplotsLu177ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~number, color = ~number, colors = "Paired",
+            marker = list(size = 4, showscale = TRUE),
+            line = list(width = 1.5, color = "#000000", showscale = TRUE))%>%
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc0, type="mesh3d")%>%
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d", showscale = FALSE)
 
 plot_ly() %>% 
   add_trace(data = vectorplots1ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
             marker = list(size = 4, showscale = TRUE),
             line = list(width = 1.5, color = "#000000", showscale = FALSE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc0, type="mesh3d", showscale = FALSE)%>%
+  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d", showscale = FALSE)
 
 
 
 
+#### add up magnitudes ####
+
+
+#endpoints = function(startpoints,x,vectors){startpoints + x*vectors}
+vectorpointsex = array(NA, dim = dim(vectors))
+
+for (k in 1:3){
+  for (j in 1:11){
+    for (i in 1:length(rplottimes)){
+      
+      vectorpointsex[i,j,k] = vectorsex[i,j,k]-positions[i,1,k]
+      
+    }
+  }
+}
+
+#Find t values for intersection with 0 and then h z-plane
+
+points0tex = (-positionscopy[,,3]/vectorpointsex[,,3])
+points0tex = array(points0tex, dim = c(nrow(points0tex),11,3))
+
+pointshtex = (cellheight-positionscopy[,,3])/vectorpointsex[,,3]
+pointshtex = array(pointshtex, dim = c(nrow(pointshtex),11,3))
+colnames(pointshtex) = c(letters[1:11])
+
+#should all equal z=0 and then z=cellheight
+shouldequal0ex = endpoints(positionscopy[,,3],points0tex[,,3],vectorpointsex[,,3])
+shouldequalhex = endpoints(positionscopy[,,3],pointshtex[,,3],vectorpointsex[,,3])
+
+#insert t0 values to get x/y positions of z=0 contact, an h respectively
+points0ex = endpoints(positionscopy,points0tex,vectorpointsex)
+pointshex = endpoints(positionscopy,pointshtex,vectorpointsex)
+
+#should equal z = cellheight
+pointshheightex = pointshex[,,3]-points0ex[,,3]
+
+# magnitude from positions to pointsh and points0
+pointsmaghex = ((pointshex[,,1]-positions[,,1])^2+(pointshex[,,2]-positions[,,2])^2+(pointshex[,,3]-positions[,,3])^2)^0.5
+pointsmag0ex = ((points0ex[,,1]-positions[,,1])^2+(points0ex[,,2]-positions[,,2])^2+(points0ex[,,3]-positions[,,3])^2)^0.5
+pointsmag0hex = abs(pointsmaghex-pointsmag0ex)
+
+
+#Next make an integrated energy table (from dEadxtable2 and dEbdxtable2 values over distance mag) vs time for all desctructions that count, then multiply the super vectorsallNA to the rplotout
+  #and multiply remaining energy by the CPM values -> then integrate all those for cumulative energy, Gy, and bam.
+
+#use dEadxtable2 and dEbdxtable2 for tabular values with LET and magnitudes.
+
+#Create rplotoutex which matches a master dEdx table columns
+rplotoutex = data.frame(matrix(NA, nrow = nrow(rplotout), ncol = ncol(rplotout)))
+
+for (i in c(1,2,3,4,7,8,10,6,5,11,9,12)){
+  rplotoutex[,i] = data.frame(cbind(rplotout[,i]))
+  }
+colnames(rplotoutex)=colnames(rplotout[c(1,2,3,4,7,8,10,6,5,11,9,12)])
+
+#master dEdx table with integrated values
+dEdxmaster = dEadxtable2
+NAdif = matrix(NA, nrow = nrow(dEbdxtable2)-nrow(dEadxtable2), ncol = ncol(dEadxtable2))
+colnames(NAdif) = colnames(dEdxmaster)
+dEdxmaster = rbind(dEdxmaster,NAdif)
+dEdxmaster = cbind(dEdxmaster,dEbdxtable2[2:6])
+
+#to get around floating point issues
+dEdxmaster$Distance = round(dEdxmaster$Distance, 4)
+
+# dEdxmaster$Distance = as.numeric(dEdxmaster$Distance)
+
+
+#For positions z > cellheight, integrated energy at z = 0 minus at z= h. resolution is 0.1 micron.
+
+dEdxex = array(NA, dim=c(nrow(rplotoutex),11,1))
+
+
+for (j in 1:11){
+  for (i in 1:nrow(dEdxex)){
+    if (positionscopy[i,j,3] > cellheight & !is.na(pointsmag0ex[i,j]) & !is.na(pointsmaghex[i,j])){sum(dEdxmaster[1,1]:dEdxmaster[which(dEdxmaster$Distance == round(pointsmag0ex[i,j],4)),j+1]) - sum(dEdxmaster[1,1]:dEdxmaster[which(dEdxmaster$Distance == round(pointsmaghex[i,j],4)),j+1]) = dedxex[i,j,1]}  
+  }
+}
+
+
+
+
+#For starting positions within the cell layer, z < cellheight, use pointsmag0 if points0tex is positive, or use pointsmagh if points0tex is negative 
+
+pointsmagh1 = array(pointsmagh, dim=c(nrow(pointsmagh),11,1))
+
+for (k in 1:1){
+  for (j in 1:11){
+    for (i in 1:nrow(pointsmagh1)){
+      if (pointsmagh1[i,j,k] > rplotoutdistances[i,j+1] & positions[i,1,3] > cellheight & !is.na(pointsmagh1[i,j,k]) ){ pointsmagh1[i,j,k] = NA}  
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+#### Example vector intersecting a 3D circle ####
 #equation of each vector -> end - start
 
 # <Px,Py,Pz> - <px,py,pz> -> (Px-px,Py-py,Pz-pz)
@@ -1252,13 +1379,6 @@ ry = py+t*vy
 yz = pz+t*vz
 
 
-#myfunction = function(x){2*x+1}
-
-#test = myfunction(2)
-
-
-#########################################################################################################
-#Example vector intersecting a 3D circle
 
 v0 = c(2,2,2)
 v1 = c(-2,-2,-2)
@@ -1402,7 +1522,7 @@ plot_ly() %>%
 
 
 
-
+##### PK section #####
 #Comapre activities of Ac-225 vs Lu-177 with the starting activities used at the top uciac225, ucilu177
 #Lutetium-177 activity calculator
 
@@ -1411,7 +1531,7 @@ plot_ly() %>%
 #no PK
 eploto <- edaughtersdata[eplotrows, c(1,2,11,14,15,13,3,4,5,6,7,8,9,10,16,17,18,19,20,21,22,23,24,25,26)]
 
-##################################
+
 ################################## <<<<<<<<<<<<<<<------ eplotout PK half life from here out
 ####################
 #PK elimination
