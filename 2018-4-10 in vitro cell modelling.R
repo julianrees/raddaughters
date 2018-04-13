@@ -1333,7 +1333,7 @@ dEdxex = array(NA, dim=c(nrow(rplotoutex),11,1))
 
 for (j in 1:11){
   for (i in 1:nrow(dEdxex)){
-    if (positionscopy[i,j,3] > cellheight & !is.na(pointsmag0ex[i,j]) & !is.na(pointsmaghex[i,j])){sum(dEdxmaster[1,1]:dEdxmaster[which(dEdxmaster$Distance == round(pointsmag0ex[i,j],4)),j+1]) - sum(dEdxmaster[1,1]:dEdxmaster[which(dEdxmaster$Distance == round(pointsmaghex[i,j],4)),j+1]) = dedxex[i,j,1]}  
+    if (positionscopy[i,j,3] > cellheight & !is.na(pointsmag0ex[i,j]) & !is.na(pointsmaghex[i,j])){dEdxex[i,j,1] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex[i,j],4)),j+1])}  
   }
 }
 
