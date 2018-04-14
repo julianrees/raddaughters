@@ -584,7 +584,8 @@ for(j in 1:5){
     dEbdxtable[1,6,j] = zbeta #charge
     dEbdxtable[1,7,j] = 0
     
-    dEbdxtable[i+1,1,j] = bstepsize*i^1.75
+    # dEbdxtable[i+1,1,j] = bstepsize*i^1.75
+    dEbdxtable[i+1,1,j] = unique(round(bstepsize*i^1.75, 4))
     dEbdxtable[i+1,4,j] = dEbdxtable[i,4,j]-dEbdxtable[i,5,j] #E(x)
     dEbdxtable[i+1,3,j] = vbeta(lorentzi(dEbdxtable[i+1,4,j])) #v(E)
     dEbdxtable[i+1,6,j] = zbeta #z(v)
@@ -598,27 +599,49 @@ for(j in 1:5){
 
 #Change to MeV for dE/dx and integration
 dEbdxtablemev = dEbdxtable[,c(2,7),]/1000000/joulesperev
+
 dEbdxtable1 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,1,]))
 colnames(dEbdxtable1)[1] = 'Distance'
+#add a 0 row at correct distance
+dEbdxtable1 = rbind(dEbdxtable1, c(dEbdxtable1[nrow(dEbdxtable1),1],0,0,0,0,0,0))
+
 dEbdxtable2 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,2,]))
 colnames(dEbdxtable2)[1] = 'Distance'
+#add a 0 row
+dEbdxtable2 = rbind(dEbdxtable2, c(dEbdxtable2[nrow(dEbdxtable2),1],0,0,0,0,0,0))
 
 #remove negative values from data frames
-dEbdxtable1[dEbdxtable1 <0 ] <- NA
-dEbdxtable2[dEbdxtable2 <0 ] <- NA
+for (j in 1:ncol(dEbdxtable1)){
+  for (i in 1:nrow(dEbdxtable1)){
+    if (is.nan(dEbdxtable1[i,j])) {dEbdxtable1[i,j] = 0}
+  }
+}
+for (j in 1:ncol(dEbdxtable2)){
+  for (i in 1:nrow(dEbdxtable2)){
+      if (is.nan(dEbdxtable2[i,j])) {dEbdxtable2[i,j] = 0}
+  }
+}
 
+# #make more managable to plot, but keep large table for later interpolation
+# dEbdxtable1times = unique(round(lseq(0.001, nrow(dEbdxtable1), 5000)), 0.001)
+# dEbdxtable3 <- dEbdxtable1[dEbdxtable1times,]
+
+# #1 is dE/dx
+# mdEbdxtable3 = melt(dEbdxtable3, id='Distance')
+# colnames(mdEbdxtable3) = c('Distance', 'Species', 'value')
 
 #1 is dE/dx
 mdEbdxtable1 = melt(dEbdxtable1, id='Distance')
 colnames(mdEbdxtable1) = c('Distance', 'Species', 'value')
+
 #2 is integrated dE/dx
 mdEbdxtable2 = melt(dEbdxtable2, id='Distance')
 colnames(mdEbdxtable2) = c('Distance', 'Species', 'value')
 
-ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_log10(breaks=c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10))+
+ggplot(mdEbdxtable1[which(mdEbdxtable1$Distance != 0),], aes(x=Distance, y=value, by=Species, color = Species))+
+  geom_line(size=2, alpha=1)+
+  #scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10))+
   scale_y_log10(breaks=c(0.125, 0.25, 0.5, 1, 2, 4, 8))+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -626,9 +649,23 @@ ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
   theme(text = element_text(size=18, face = "bold"),
         axis.text.y=element_text(colour="black"),
         axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))  
+  guides(shape=guide_legend(override.aes = list(size=3))) # + 
+  #ggsave("testplot.pdf")
 
+#if you want to plot points, not lines
 
+# ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
+#   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+#   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+#   scale_x_log10(breaks=c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10))+
+#   scale_y_log10(breaks=c(0.125, 0.25, 0.5, 1, 2, 4, 8))+
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+#   labs(x = "Distance (mm)", y = "LET (MeV/mm)", color='Species')+
+#   theme(text = element_text(size=18, face = "bold"),
+#         axis.text.y=element_text(colour="black"),
+#         axis.text.x=element_text(colour="black"))+
+#   guides(shape=guide_legend(override.aes = list(size=3))) 
 
 
 
@@ -1315,10 +1352,10 @@ colnames(rplotoutex)=colnames(rplotout[c(1,2,3,4,7,8,10,6,5,11,9,12)])
 
 #master dEdx table with integrated values
 dEdxmaster = dEadxtable2
-NAdif = matrix(NA, nrow = nrow(dEbdxtable2)-nrow(dEadxtable2), ncol = ncol(dEadxtable2))
+NAdif = matrix(0, nrow = nrow(dEbdxtable2)-nrow(dEadxtable2), ncol = ncol(dEadxtable2))
 colnames(NAdif) = colnames(dEdxmaster)
 dEdxmaster = rbind(dEdxmaster,NAdif)
-dEdxmaster = cbind(dEdxmaster,dEbdxtable2[2:6])
+dEdxmaster = cbind(dEbdxtable2[,1],dEdxmaster[,2:7],dEbdxtable2[2:6])
 
 #to get around floating point issues
 dEdxmaster$Distance = round(dEdxmaster$Distance, 4)
@@ -1328,21 +1365,45 @@ dEdxmaster$Distance = round(dEdxmaster$Distance, 4)
 
 #For positions z > cellheight, integrated energy at z = 0 minus at z= h. resolution is 0.1 micron.
 
-dEdxex = array(NA, dim=c(nrow(rplotoutex),11,1))
+dEdxex = matrix(0, nrow = nrow(rplotoutex), ncol = 11)
+pointsmaghex = matrix(pointsmaghex, nrow = nrow(pointsmaghex), ncol = 11)
 
+#change all those NAs to 0's so they don't break the code
+pointsmag0ex1 = pointsmag0ex
+pointsmaghex1 = pointsmaghex
 
 for (j in 1:11){
-  for (i in 1:nrow(dEdxex)){
-    if (positionscopy[i,j,3] > cellheight & !is.na(pointsmag0ex[i,j]) & !is.na(pointsmaghex[i,j])){dEdxex[i,j,1] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex[i,j],4)),j+1])}  
+  for (i in 1:nrow(pointsmag0ex)){
+    if (is.na(pointsmag0ex[i,j]) ){pointsmag0ex1[i,j] = 0}
+    if (is.na(pointsmaghex[i,j]) ){pointsmaghex1[i,j] = 0}
   }
 }
 
 
+for (j in 1:11){
+  for (i in 1:nrow(dEdxex)){
+    if (positionscopy[i,j,3] > cellheight){dEdxex[i,j] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}
+  }
+}
 
+
+  sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}
+
+i = 62
+j = 1
+if (positionscopy[i,j,3] > cellheight){dEdxex[i,j,1] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}  
+
+
+round(pointsmag0ex1[i,j],4)
+which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4))
+which(dEdxmaster$Distance == 0.141)
+dEdxex[i,j,1] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])
+& !is.na(pointsmag0ex1[i,j]) & !is.na(pointsmaghex1[i,j])
 
 #For starting positions within the cell layer, z < cellheight, use pointsmag0 if points0tex is positive, or use pointsmagh if points0tex is negative 
 
 pointsmagh1 = array(pointsmagh, dim=c(nrow(pointsmagh),11,1))
+
 
 for (k in 1:1){
   for (j in 1:11){
