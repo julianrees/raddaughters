@@ -1368,12 +1368,16 @@ dEbdxmaster = dEbdxtable2
 NAdif = matrix(0, nrow = nrow(dEbdxtable2)-nrow(dEadxtable2), ncol = ncol(dEadxtable2))
 colnames(NAdif) = colnames(dEadxmaster)
 dEadxmaster = rbind(dEadxmaster,NAdif)
+dEadxmaster$Distance[(nrow(dEadxtable2)+1):(nrow(dEadxmaster)-2)] = c(seq(max(dEadxmaster$Distance)+astepsize,max(dEbdxmaster$Distance),((max(dEbdxmaster$Distance)-(max(dEadxmaster$Distance)+astepsize))/(nrow(dEadxmaster)-2-(nrow(dEadxtable2)+1)))))
+
+
+
 #dEadxmaster = cbind(dEbdxtable2[,1],dEdxmaster[,2:7],dEbdxtable2[2:6])
 
 ##to get around floating point issues
 #dEadxmaster$Distance = round(dEdxmaster$Distance, broundfactor)
 
-# dEdxmaster$Distance = as.numeric(dEdxmaster$Distance)
+#dEadxmaster$Distance = as.numeric(dEdxmaster$Distance)
 
 #is there a reason only converted pointsmaghex to a matrix and not pointsmag0ex to a matri?
 dEadxex = matrix(0, nrow = nrow(rplotoutex), ncol = (ncol(rplotoutex)-1))
@@ -1394,14 +1398,40 @@ for (j in 1:11){
 #For positions z > cellheight, integrated energy at z = 0 minus at z= h. resolution is 0.1 micron.
 
 #First for alpha and alpha Distance scale which dEadxtable2$Distance != dEbdxtable2$Distance.
+#Use match to get first available min value and keep it scalar
 for (j in 1:(ncol(dEadxtable2)-1)){
   for (i in 1:nrow(dEdxex)){
-    if (positionscopy[i,j,3] > cellheight){dEadxex[i,j] = sum(dEadxmaster[1:which(dEadxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEadxmaster[1:which(dEadxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}
+    if (positionscopy[i,j,3] > cellheight){dEadxex[i,j] = sum((dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]) - (dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))], dEadxmaster$Distance),j+1]))}
 
   }
 }
 
+#!!!!!!!!!!!!! negative values appearing in 'dEdxex'
 
+dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]
+
+# backup - sum(dEadxmaster[1:which(dEadxmaster$Distance == dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))]),j+1] - (dEadxmaster[1:which(dEadxmaster$Distance == dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))]),j+1]))}
+# which(dEadxmaster$Distance == dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))])
+# 
+# match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance)
+# 
+# dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))]
+# which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))
+# abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4))
+# 
+# 
+# minus1 = (dEadxmaster$Distance - round(pointsmag0ex1[i,j],4))
+# round(pointsmag0ex1[i,j],4)
+# 
+# 
+# miunsdf = as.data.frame(minus1)
+# minus2 = which.min(abs(minus1))
+
+#minus2 = which(minus1 %in% min(minus1))
+
+
+
+#^^^ added a rounding factor for distances greater than possible magnitude, since scale on $Distance varies at row 1251.
 
 
 
