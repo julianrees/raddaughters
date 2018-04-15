@@ -544,6 +544,13 @@ colnames(dEadxtable1)[1] = 'Distance'
 dEadxtable2 = data.frame(cbind(dEadxtable[,1,1],dEadxtablemev[,2,]))
 colnames(dEadxtable2)[1] = 'Distance'
 
+broundfactor = 5
+dEadxtable3 = cbind(round(dEadxtable2$Distance, broundfactor),dEadxtable2[,2:ncol(dEadxtable2)])
+colnames(dEadxtable3) = colnames(dEadxtable2)
+dEadxtable2 = dEadxtable3
+
+
+
 #1 is dE/dx
 mdEadxtable1 = melt(dEadxtable1, id='Distance')
 colnames(mdEadxtable1) = c('Distance', 'Species', 'value')
@@ -585,7 +592,7 @@ for(j in 1:5){
     dEbdxtable[1,7,j] = 0
     
     # dEbdxtable[i+1,1,j] = bstepsize*i^1.75
-    dEbdxtable[i+1,1,j] = unique(round(bstepsize*i^1.75, 4))
+    dEbdxtable[i+1,1,j] = unique(bstepsize*i^1.75, 4)
     dEbdxtable[i+1,4,j] = dEbdxtable[i,4,j]-dEbdxtable[i,5,j] #E(x)
     dEbdxtable[i+1,3,j] = vbeta(lorentzi(dEbdxtable[i+1,4,j])) #v(E)
     dEbdxtable[i+1,6,j] = zbeta #z(v)
@@ -621,6 +628,11 @@ for (j in 1:ncol(dEbdxtable2)){
       if (is.nan(dEbdxtable2[i,j])) {dEbdxtable2[i,j] = 0}
   }
 }
+
+
+dEbdxtable3 = cbind(round(dEbdxtable2$Distance, broundfactor),dEbdxtable2[,2:ncol(dEbdxtable2)])
+colnames(dEbdxtable3) = colnames(dEbdxtable2)
+dEbdxtable2 = dEbdxtable3
 
 # #make more managable to plot, but keep large table for later interpolation
 # dEbdxtable1times = unique(round(lseq(0.001, nrow(dEbdxtable1), 5000)), 0.001)
@@ -1351,22 +1363,21 @@ for (i in c(1,2,3,4,7,8,10,6,5,11,9,12)){
 colnames(rplotoutex)=colnames(rplotout[c(1,2,3,4,7,8,10,6,5,11,9,12)])
 
 #master dEdx table with integrated values
-dEdxmaster = dEadxtable2
+dEadxmaster = dEadxtable2
+dEbdxmaster = dEbdxtable2
 NAdif = matrix(0, nrow = nrow(dEbdxtable2)-nrow(dEadxtable2), ncol = ncol(dEadxtable2))
-colnames(NAdif) = colnames(dEdxmaster)
-dEdxmaster = rbind(dEdxmaster,NAdif)
-dEdxmaster = cbind(dEbdxtable2[,1],dEdxmaster[,2:7],dEbdxtable2[2:6])
+colnames(NAdif) = colnames(dEadxmaster)
+dEadxmaster = rbind(dEadxmaster,NAdif)
+#dEadxmaster = cbind(dEbdxtable2[,1],dEdxmaster[,2:7],dEbdxtable2[2:6])
 
-#to get around floating point issues
-dEdxmaster$Distance = round(dEdxmaster$Distance, 4)
+##to get around floating point issues
+#dEadxmaster$Distance = round(dEdxmaster$Distance, broundfactor)
 
 # dEdxmaster$Distance = as.numeric(dEdxmaster$Distance)
 
-
-#For positions z > cellheight, integrated energy at z = 0 minus at z= h. resolution is 0.1 micron.
-
-dEdxex = matrix(0, nrow = nrow(rplotoutex), ncol = 11)
-pointsmaghex = matrix(pointsmaghex, nrow = nrow(pointsmaghex), ncol = 11)
+#is there a reason only converted pointsmaghex to a matrix and not pointsmag0ex to a matri?
+dEadxex = matrix(0, nrow = nrow(rplotoutex), ncol = (ncol(rplotoutex)-1))
+pointsmaghex = matrix(pointsmaghex, nrow = nrow(pointsmaghex), ncol = (ncol(rplotoutex)-1))
 
 #change all those NAs to 0's so they don't break the code
 pointsmag0ex1 = pointsmag0ex
@@ -1380,11 +1391,20 @@ for (j in 1:11){
 }
 
 
-for (j in 1:11){
+#For positions z > cellheight, integrated energy at z = 0 minus at z= h. resolution is 0.1 micron.
+
+#First for alpha and alpha Distance scale which dEadxtable2$Distance != dEbdxtable2$Distance.
+for (j in 1:(ncol(dEadxtable2)-1)){
   for (i in 1:nrow(dEdxex)){
-    if (positionscopy[i,j,3] > cellheight){dEdxex[i,j] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}
+    if (positionscopy[i,j,3] > cellheight){dEadxex[i,j] = sum(dEadxmaster[1:which(dEadxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEadxmaster[1:which(dEadxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}
+
   }
 }
+
+
+
+
+
 
 
   sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}
