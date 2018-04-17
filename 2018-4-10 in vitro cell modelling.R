@@ -1400,36 +1400,13 @@ for (j in 1:11){
 #First for alpha and alpha Distance scale which dEadxtable2$Distance != dEbdxtable2$Distance.
 #Use match to get first available min value and keep it scalar
 for (j in 1:(ncol(dEadxtable2)-1)){
-  for (i in 1:nrow(dEdxex)){
-    if (positionscopy[i,j,3] > cellheight){dEadxex[i,j] = sum((dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]) - (dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))], dEadxmaster$Distance),j+1]))}
+  for (i in 1:nrow(dEadxex)){
+    if (positionscopy[i,j,3] > cellheight){dEadxex[i,j] = sum(sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]) - sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))], dEadxmaster$Distance),j+1]))}
 
   }
 }
 
 #!!!!!!!!!!!!! negative values appearing in 'dEdxex'
-
-dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]
-
-# backup - sum(dEadxmaster[1:which(dEadxmaster$Distance == dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))]),j+1] - (dEadxmaster[1:which(dEadxmaster$Distance == dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))]),j+1]))}
-# which(dEadxmaster$Distance == dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))])
-# 
-# match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance)
-# 
-# dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))]
-# which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))
-# abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4))
-# 
-# 
-# minus1 = (dEadxmaster$Distance - round(pointsmag0ex1[i,j],4))
-# round(pointsmag0ex1[i,j],4)
-# 
-# 
-# miunsdf = as.data.frame(minus1)
-# minus2 = which.min(abs(minus1))
-
-#minus2 = which(minus1 %in% min(minus1))
-
-
 
 #^^^ added a rounding factor for distances greater than possible magnitude, since scale on $Distance varies at row 1251.
 
