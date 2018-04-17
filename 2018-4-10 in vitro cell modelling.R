@@ -54,8 +54,8 @@ activity = c(k1 = 58, k2 = 176026.2, k3 = 1609541800, k4 = 20000, k5 = 1.3*10^13
              k12 = 0.072, k13 = 31, k14 = 38926.9, k15 = 51.2, k16 = 13008438.4, k17 = 29461992937, k18 = 24639.1739, k19 = 416405.3549, k20 = 190584.9219, k21 = 0) 
 
 #initial activity in uCi
-uciac225 =  0.17 #0.1 nCi = 220 CPM  ->>>> divide by #major species (5) if in transient equilibrium, don't include minor species.
-ucilu177 = 21 
+uciac225 =  30/1000 #0.1 nCi = 220 CPM  ->>>> divide by #major species (5) if in transient equilibrium, don't include minor species.
+ucilu177 = 4000/1000 
 uciac227 = 1 #/8 divide by # starting @EQ (8) to get total dose equivalency, don't include minor species.
 
 #Initial nmoles of actinium-225
@@ -805,7 +805,7 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 #### Geometric Modeling ####
 
 
-wellheight = 3.16 #mm
+wellheight = 3.16 #mm height from 100 uL liquid?
 wellradius = 3.175^2 #mm
 cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
 
@@ -1398,10 +1398,11 @@ for (j in 1:11){
 #For positions z > cellheight, integrated energy at z = 0 minus at z= h. resolution is 0.1 micron.
 
 #First for alpha and alpha Distance scale which dEadxtable2$Distance != dEbdxtable2$Distance.
-#Use match to get first available min value and keep it scalar
+#subtract the rounded scalar magnitude from the vector of distances, and find which row is closest to zero (since did absolute value) via match, and sum the integrated values from sipmsons from zero to that point. 
+
 for (j in 1:(ncol(dEadxtable2)-1)){
   for (i in 1:nrow(dEadxex)){
-    if (positionscopy[i,j,3] > cellheight){dEadxex[i,j] = sum(sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]) - sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))], dEadxmaster$Distance),j+1]))}
+    if (positionscopy[i,j,3] > cellheight){dEadxex[i,j] = sum(sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],broundfactor-1)))], dEadxmaster$Distance),j+1]) - sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],broundfactor-1)))], dEadxmaster$Distance),j+1]))}
 
   }
 }
@@ -1410,176 +1411,317 @@ for (j in 1:(ncol(dEadxtable2)-1)){
 
 #^^^ added a rounding factor for distances greater than possible magnitude, since scale on $Distance varies at row 1251.
 
+dEadxex20 = matrix(0, nrow = nrow(rplotoutex), ncol = (ncol(rplotoutex)-1))
+dEadxex2h = matrix(0, nrow = nrow(rplotoutex), ncol = (ncol(rplotoutex)-1))
 
-#For positions z <= cellheight,
+#For positions z <= cellheight, and points0tex >=0, dEadxex2[i,j] = integrated energy from position start (aka x = 0) to 'pointsmag0ex'
+#For positions z <= cellheight, and pointshtex >=0, dEadxex2[i,j] = integrated energy from position start (aka x = 0) to 'pointsmaghex'
+#
+
 
 for (j in 1:(ncol(dEadxtable2)-1)){
-  for (i in 1:nrow(dEadxex)){
-    if (positionscopy[i,j,3] < cellheight){dEadxex[i,j] = sum(sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]) - sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))], dEadxmaster$Distance),j+1]))}
+  for (i in 1:nrow(dEadxex20)){
+    if (positionscopy[i,j,3] <= cellheight & points0tex[i,j,3] >= 0 & !is.na(points0tex[i,j,3])){dEadxex20[i,j] = sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],broundfactor-1)))], dEadxmaster$Distance),j+1])}
+    if (positionscopy[i,j,3] <= cellheight & pointshtex[i,j,3] >= 0 & !is.na(pointshtex[i,j,3])){dEadxex2h[i,j] = sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],broundfactor-1)))], dEadxmaster$Distance),j+1])}
     
   }
 }
 
 
 
+#Now for beta emissions,___________>
+
+dEbdxex = matrix(0, nrow = nrow(rplotoutex), ncol = (ncol(rplotoutex)-1))
+
+#For positions z > cellheight, integrated energy at z = 0 minus at z= h. resolution is 0.1 micron.
+
+#First for alpha and alpha Distance scale which dEadxtable2$Distance != dEbdxtable2$Distance.
+#subtract the rounded scalar magnitude from the vector of distances, and find which row is closest to zero (since did absolute value) via match, and sum the integrated values from sipmsons from zero to that point. 
+
+for (j in (ncol(dEadxtable2)):(ncol(rplotoutex)-1)){
+  for (i in 1:nrow(dEbdxex)){
+    if (positionscopy[i,j,3] > cellheight){dEbdxex[i,j] = sum(sum(dEbdxmaster[1:match(dEbdxmaster$Distance[which.min(abs(dEbdxmaster$Distance - round(pointsmag0ex1[i,j],broundfactor)))], dEbdxmaster$Distance),j-5]) - sum(dEbdxmaster[1:match(dEbdxmaster$Distance[which.min(abs(dEbdxmaster$Distance - round(pointsmaghex1[i,j],broundfactor)))], dEbdxmaster$Distance),j-5]))}
+    
+  }
+}
+
+#!!!!!!!!!!!!! negative values appearing in 'dEdxex'
+
+#^^^ added a rounding factor for distances greater than possible magnitude, since scale on $Distance varies at row 1251.
+
+dEbdxex20 = matrix(0, nrow = nrow(rplotoutex), ncol = (ncol(rplotoutex)-1))
+dEbdxex2h = matrix(0, nrow = nrow(rplotoutex), ncol = (ncol(rplotoutex)-1))
+
+#For positions z <= cellheight, and points0tex >=0, dEadxex2[i,j] = integrated energy from position start (aka x = 0) to 'pointsmag0ex'
+#For positions z <= cellheight, and pointshtex >=0, dEadxex2[i,j] = integrated energy from position start (aka x = 0) to 'pointsmaghex'
+#
 
 
-
-  sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}
-
-i = 62
-j = 1
-if (positionscopy[i,j,3] > cellheight){dEdxex[i,j,1] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])}  
-
-
-round(pointsmag0ex1[i,j],4)
-which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4))
-which(dEdxmaster$Distance == 0.141)
-dEdxex[i,j,1] = sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4)),j+1]) - sum(dEdxmaster[1:which(dEdxmaster$Distance == round(pointsmaghex1[i,j],4)),j+1])
-& !is.na(pointsmag0ex1[i,j]) & !is.na(pointsmaghex1[i,j])
-
-#For starting positions within the cell layer, z < cellheight, use pointsmag0 if points0tex is positive, or use pointsmagh if points0tex is negative 
-
-pointsmagh1 = array(pointsmagh, dim=c(nrow(pointsmagh),11,1))
-
-
-for (k in 1:1){
-  for (j in 1:11){
-    for (i in 1:nrow(pointsmagh1)){
-      if (pointsmagh1[i,j,k] > rplotoutdistances[i,j+1] & positions[i,1,3] > cellheight & !is.na(pointsmagh1[i,j,k]) ){ pointsmagh1[i,j,k] = NA}  
-    }
+for (j in (ncol(dEadxtable2)):(ncol(rplotoutex)-1)){
+  for (i in 1:nrow(dEbdxex20)){
+    if (positionscopy[i,j,3] <= cellheight & points0tex[i,j,3] >= 0 & !is.na(points0tex[i,j,3])){dEbdxex20[i,j] = sum(dEbdxmaster[1:match(dEbdxmaster$Distance[which.min(abs(dEbdxmaster$Distance - round(pointsmag0ex1[i,j],broundfactor)))], dEbdxmaster$Distance),j-5])}
+    if (positionscopy[i,j,3] <= cellheight & pointshtex[i,j,3] >= 0 & !is.na(pointshtex[i,j,3])){dEbdxex2h[i,j] = sum(dEbdxmaster[1:match(dEbdxmaster$Distance[which.min(abs(dEbdxmaster$Distance - round(pointsmaghex1[i,j],broundfactor)))], dEbdxmaster$Distance),j-5])}
+    
   }
 }
 
 
 
+#combine dEadxex, dEadxex20/2h and for beta also into one big table.
+
+dEdxexcombo = dEadxex+dEadxex20+dEadxex2h+dEbdxex+dEbdxex20+dEbdxex2h
+dEdxexcombo = cbind(rplotoutex$times, dEdxexcombo)
+colnames(dEdxexcombo) = colnames(rplotoutex)
+
+#multiply by rplotoutex to get energies per time
+dEdxexcomborplotout = matrix(NA, nrow = nrow(rplotout), ncol = ncol(rplotout))
+dEdxexcomborplotout = (cbind(rplotoutex$times, (dEdxexcombo[,2:12]*rplotoutex[,2:12])))
+colnames(dEdxexcomborplotout)[1] = "times"
+dEdxexcomborplotout1 = dEdxexcomborplotout
+
+#remove the zeros so they are not plotted
+dEdxexcomborplotout1[,2:12][dEdxexcomborplotout1[,2:12] < 1] = NA
+
+mdEdxexcomborplotout1 = melt(dEdxexcomborplotout1, id='times')
+colnames(mdEdxexcomborplotout1) = c("times", "Species", "value" )
+
+ggplot(mdEdxexcomborplotout1, aes(x=times, y=value, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
+  
+  scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000))+
+  annotation_logticks(base = 10, sides = "bl", scaled = TRUE,
+                      short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
+                      colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
+  
+  scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
+  
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  
+  labs(x = "Time (day)", y = "Power (MeV/day)")+
+  theme(text = element_text(size=18, face = "bold"))
+        
+        # legend.position = c(.05, .05),
+        # legend.justification = c("left", "bottom"),
+        # legend.box.just = c("left"),
+        # legend.margin = margin(4, 4, 4, 4))+
+  
+  
+  #guides(shape=guide_legend(override.aes = list(size=3))))
+
+
+#### integrate to get cumulative energy absorbed ####
+
+#set null variables:
+
+dEdxexint = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
+dEdxexintsum = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
+dEdxexintsumAc225 = NULL
+
+for (j in 2:ncol(rplotout)){
+  for(i in 1:(length(rplotout[,1])-1)){
+      dEdxexint[i,j-1] = ((dEdxexcomborplotout[i+1,1]-dEdxexcomborplotout[i,1])/8)*(dEdxexcomborplotout[i,j]+3*((2*dEdxexcomborplotout[i,2]+dEdxexcomborplotout[i+1,j])/3)+3*((dEdxexcomborplotout[i,j]+2*dEdxexcomborplotout[i+1,j])/3)+dEdxexcomborplotout[i+1,j])
+      dEdxexintsum[i,j-1] = sum(dEdxexint[1:i,j-1])
+    }
+  }
+
+
+#sum of all ac-225 daighters
+
+dEdxexintsumAc225 = matrix(NA, ncol = 1, nrow = nrow(dEdxexintsum))
+for (i in 1:nrow(dEdxexintsum)){
+  dEdxexintsumAc225[i] = sum(dEdxexintsum[i,1:ncol(dEdxexintsum)])
+}
+colnames(dEdxexintsumAc225) = "Ac-225 SUM"
+
+#mass of cells
+#two ways to do this:
+#1) based on confluency
+wellconfluency = 0.5 #confluent for the control volume
+controlvolume = pi*wellradius*cellheight/10^3 #wellradius is already ^2, /10^3 to convert to cm3 from mm3
+cellcontrolvolume = controlvolume*wellconfluency
+cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
+
+#2) based on individual cell mass
+cellseedingdensity = 100000 #cells per mL
+cellliquidvolume = 0.1 #mL
+celldensity = 1 #g/cm^3
+cellvolume = (4/3*pi*(cellheight/2)^3)/10^3 #cm^3
+cellmass = celldensity*cellliquidvolume*cellseedingdensity*cellvolume/1000 #kg
 
 
 
 
 
 
-#### Example vector intersecting a 3D circle ####
-#equation of each vector -> end - start
+dEdxexintMeV = as.data.frame(cbind(rplotout$times, dEdxexintsum, dEdxexintsumAc225))
+colnames(dEdxexintMeV) = colnames(rplotoutex)
+colnames(dEdxexintMeV)[13] = "Ac-225 SUM"
 
-# <Px,Py,Pz> - <px,py,pz> -> (Px-px,Py-py,Pz-pz)
+mdEdxexintMeV = melt(dEdxexintMeV, id="times")
+colnames(mdEdxexintMeV) = c("times", "Species", "value")
 
-vectorsline = data.frame(Px-px,Py-py,Pz-pz)
-vx = Px-px
-vy = Py-py
-vz = Pz-pz
-
-
-
-#r = c(Px, Py, Pz) + t*vectorsline
-#or parametricly
-rx = px+t*vx
-ry = py+t*vy
-yz = pz+t*vz
+Gy = 6.242E12 #MeV/kg per Gy
+dEdxexintGy = cbind(dEdxexintsum, dEdxexintsumAc225)
+dEdxexintGy = dEdxexintGy/cellcontrolmass/Gy
+dEdxexintGy = as.data.frame(cbind(rplotout$times, dEdxexintGy))
+colnames(dEdxexintGy) = colnames(rplotoutex)
+colnames(dEdxexintGy)[13] = "Ac-225 SUM"
+mdEdxexintGy = melt(dEdxexintGy, id="times")
+colnames(mdEdxexintGy) = c("times", "Species", "value")
 
 
-
-v0 = c(2,2,2)
-v1 = c(-2,-2,-2)
-vv = data.frame(v0,v1)
-
-#circle, rho is distance from centerpoint, z is stack height, and phi is angle from starting point
-rhoc = sqrt(runif(length(rplottimes), 0, wellradius))
-phic = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
-pzc = runif(length(rplottimes), 0, cellheight)
-pxc = rhoc*cos(phic)
-pyc = rhoc*sin(phic)
-
-circle = data.frame(pxc,pyc,pzc)
-#vertical line
-ax = c(0,0) 
-ay = c(0,0) 
-az = c(1,-1)
-
-#test line
-
-#pointAA
-cc = c(2,2,2)
-dd = c(-2,-2,-2)
-
-#or
-cx = 2
-cy = 3
-cz = 4
-Cx = -2
-Cy = -2
-Cz = -2
-
-cpoints = c(cx,cy,cz)
-Cpoints = c(Cx,Cy,Cz)
-
-Ccpoints = t(matrix(Cpoints-cpoints))
+ggplot(mdEdxexintGy, aes(x=times, y=value, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
+  
+  scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000))+
+  annotation_logticks(base = 10, sides = "bl", scaled = TRUE,
+                      short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
+                      colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
+  
+  scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
+  
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  
+  labs(x = "Time (day)", y = "Absorbed Dose (Gy)")+
+  theme(text = element_text(size=18, face = "bold"))
 
 
-#equation of the line
-#r = c(Px, Py, Pz) + t*vectorsline
-pointseq = function(tt){cpoints+tt*Ccpoints}
-
-#parametric
-ppx = function(t){cx+t*(Ccpoints[,1])}
-ppy = function(t){cy+t*(Ccpoints[,2])}
-ppz = function(t){cz+t*(Ccpoints[,3])}
-
-#when ppz = 0, that is the intersection point. just see if x^2 + y^2 are => cellradius^0.5
-
-setz0 = -cz/Ccpoints[,3]
-
-intersection0 = c(ppx(setz0), ppy(setz0), ppz(setz0))
-
-setzh = (cellheight-cz)/Ccpoints[,3]
-
-intersectionh = c(ppx(setzh), ppy(setzh), ppz(setzh))
-
-#ray length of intersection - magnitude from intersectionh to intersection0
-raymagh = ((intersectionh[1]-intersection0[1])^2+(intersectionh[2]-intersection0[2])^2+(intersectionh[3]-intersection0[3])^2)^0.5
+#check the output
+dosenumbers = rbind(dosenumbers,dEdxexintGy[nrow(dEdxexintGy)-1,])
 
 
-#ray distance from start = magnitude from point a (lowercase) to intersection h
-raymag = ((cpoints[1]-intersectionh[1])^2+(cpoints[2]-intersectionh[2])^2+(cpoints[3]-intersectionh[3])^2)^0.5
-
-#ray energy at that distance 
-
-rayintensity = betaintensity(raymag) - betaintensity(raymagh+raymag)
 
 
-#equation of the lower circle at z=0
-#x^2+y^2 = wellradius @ z = 0 to z = cellheight
 
-# aaaa = (Ccpoints[,1])^2+(Ccpoints[,2])^2
-# bbbb = 2*(cx*Ccpoints[,1]+cy*Ccpoints[,2])
-# cccc = cx^2+cy^2-wellradius
+
+# #### Example vector intersecting a 3D circle ####
+# #equation of each vector -> end - start
 # 
-# tol1 = (-(bbbb)+(bbbb^2-4*aaaa*cccc)^0.5)/(2*aaaa)
-# tol2 = (-(bbbb)-(bbbb^2-4*aaaa*cccc)^0.5)/(2*aaaa)
+# # <Px,Py,Pz> - <px,py,pz> -> (Px-px,Py-py,Pz-pz)
 # 
+# vectorsline = data.frame(Px-px,Py-py,Pz-pz)
+# vx = Px-px
+# vy = Py-py
+# vz = Pz-pz
+# 
+# 
+# 
+# #r = c(Px, Py, Pz) + t*vectorsline
+# #or parametricly
+# rx = px+t*vx
+# ry = py+t*vy
+# yz = pz+t*vz
+# 
+# 
+# 
+# v0 = c(2,2,2)
+# v1 = c(-2,-2,-2)
+# vv = data.frame(v0,v1)
+# 
+# #circle, rho is distance from centerpoint, z is stack height, and phi is angle from starting point
+# rhoc = sqrt(runif(length(rplottimes), 0, wellradius))
+# phic = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
+# pzc = runif(length(rplottimes), 0, cellheight)
+# pxc = rhoc*cos(phic)
+# pyc = rhoc*sin(phic)
+# 
+# circle = data.frame(pxc,pyc,pzc)
+# #vertical line
+# ax = c(0,0) 
+# ay = c(0,0) 
+# az = c(1,-1)
+# 
+# #test line
+# 
+# #pointAA
+# cc = c(2,2,2)
+# dd = c(-2,-2,-2)
+# 
+# #or
+# cx = 2
+# cy = 3
+# cz = 4
+# Cx = -2
+# Cy = -2
+# Cz = -2
+# 
+# cpoints = c(cx,cy,cz)
+# Cpoints = c(Cx,Cy,Cz)
+# 
+# Ccpoints = t(matrix(Cpoints-cpoints))
+# 
+# 
+# #equation of the line
+# #r = c(Px, Py, Pz) + t*vectorsline
+# pointseq = function(tt){cpoints+tt*Ccpoints}
+# 
+# #parametric
+# ppx = function(t){cx+t*(Ccpoints[,1])}
+# ppy = function(t){cy+t*(Ccpoints[,2])}
+# ppz = function(t){cz+t*(Ccpoints[,3])}
+# 
+# #when ppz = 0, that is the intersection point. just see if x^2 + y^2 are => cellradius^0.5
+# 
+# setz0 = -cz/Ccpoints[,3]
+# 
+# intersection0 = c(ppx(setz0), ppy(setz0), ppz(setz0))
+# 
+# setzh = (cellheight-cz)/Ccpoints[,3]
+# 
+# intersectionh = c(ppx(setzh), ppy(setzh), ppz(setzh))
+# 
+# #ray length of intersection - magnitude from intersectionh to intersection0
+# raymagh = ((intersectionh[1]-intersection0[1])^2+(intersectionh[2]-intersection0[2])^2+(intersectionh[3]-intersection0[3])^2)^0.5
+# 
+# 
+# #ray distance from start = magnitude from point a (lowercase) to intersection h
+# raymag = ((cpoints[1]-intersectionh[1])^2+(cpoints[2]-intersectionh[2])^2+(cpoints[3]-intersectionh[3])^2)^0.5
+# 
+# #ray energy at that distance 
+# 
+# rayintensity = betaintensity(raymag) - betaintensity(raymagh+raymag)
+# 
+# 
+# #equation of the lower circle at z=0
+# #x^2+y^2 = wellradius @ z = 0 to z = cellheight
+# 
+# # aaaa = (Ccpoints[,1])^2+(Ccpoints[,2])^2
+# # bbbb = 2*(cx*Ccpoints[,1]+cy*Ccpoints[,2])
+# # cccc = cx^2+cy^2-wellradius
+# # 
+# # tol1 = (-(bbbb)+(bbbb^2-4*aaaa*cccc)^0.5)/(2*aaaa)
+# # tol2 = (-(bbbb)-(bbbb^2-4*aaaa*cccc)^0.5)/(2*aaaa)
+# # 
+# 
+# 
+# 
+# 
+# #what values of tt do I even choose?
+# 
+# pointslineout = data.frame(t(pointseq(1)), t(pointseq(0.75)), t(pointseq(0.5)), t(pointseq(0.25)), t(pointseq(0)))
+# pointslineoutt = data.frame(t(pointslineout))
+# colnames(pointslineoutt) = c("x","y","z")
+# 
+# pointsx = pointslineoutt$x[]
+# pointsy = pointslineoutt$y[]
+# pointsz = pointslineoutt$z[]
+# 
+# plot_ly() %>% 
+#   add_trace(x = ~pxc, y = ~pyc, z = ~pzc, type = 'scatter3d', mode = 'markers', name = 'vectorend',
+#             marker = list(color = '#BF382A', size = 1)) %>% 
+#   add_trace(x = ~ax, y = ~ay, z = ~az, type = 'scatter3d', mode = 'lines', name = 'metal location',
+#             line = list(color = '#0C4B8E', size = 3)) %>%
+#   add_trace(x = ~pointsx, y = ~pointsy, z = ~pointsz, type = 'scatter3d', mode = 'lines', name = 'metal location',
+#           line = list(color = 'green', size = 3))
 
-
-
-
-#what values of tt do I even choose?
-
-pointslineout = data.frame(t(pointseq(1)), t(pointseq(0.75)), t(pointseq(0.5)), t(pointseq(0.25)), t(pointseq(0)))
-pointslineoutt = data.frame(t(pointslineout))
-colnames(pointslineoutt) = c("x","y","z")
-
-pointsx = pointslineoutt$x[]
-pointsy = pointslineoutt$y[]
-pointsz = pointslineoutt$z[]
-
-plot_ly() %>% 
-  add_trace(x = ~pxc, y = ~pyc, z = ~pzc, type = 'scatter3d', mode = 'markers', name = 'vectorend',
-            marker = list(color = '#BF382A', size = 1)) %>% 
-  add_trace(x = ~ax, y = ~ay, z = ~az, type = 'scatter3d', mode = 'lines', name = 'metal location',
-            line = list(color = '#0C4B8E', size = 3)) %>%
-  add_trace(x = ~pointsx, y = ~pointsy, z = ~pointsz, type = 'scatter3d', mode = 'lines', name = 'metal location',
-          line = list(color = 'green', size = 3))
-
-#now predict the intersection of the plane
 
 
 
@@ -1599,7 +1741,7 @@ plot_ly() %>%
 # 
 # tester1new1 = do.call(rbind, by(tester1new, tester1new$groupss, rbind, "")) 
 # 
-# 
+# which(dEdxmaster$Distance == round(pointsmag0ex1[i,j],4))
 # 
 # plot_ly(tester1new1) %>% 
 #   add_trace(x = ~aaa, y = ~bbb, z = ~ccc, type = 'scatter3d', mode = 'lines', name = 'vectorend',
