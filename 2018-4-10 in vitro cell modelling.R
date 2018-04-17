@@ -1411,6 +1411,17 @@ for (j in 1:(ncol(dEadxtable2)-1)){
 #^^^ added a rounding factor for distances greater than possible magnitude, since scale on $Distance varies at row 1251.
 
 
+#For positions z <= cellheight,
+
+for (j in 1:(ncol(dEadxtable2)-1)){
+  for (i in 1:nrow(dEadxex)){
+    if (positionscopy[i,j,3] < cellheight){dEadxex[i,j] = sum(sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmag0ex1[i,j],4)))], dEadxmaster$Distance),j+1]) - sum(dEadxmaster[1:match(dEadxmaster$Distance[which.min(abs(dEadxmaster$Distance - round(pointsmaghex1[i,j],4)))], dEadxmaster$Distance),j+1]))}
+    
+  }
+}
+
+
+
 
 
 
