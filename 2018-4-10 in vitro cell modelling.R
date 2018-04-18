@@ -221,7 +221,7 @@ colnames(daughtersdata) = c("times", "Ac-225", "Fr-221", "At-217", "Bi-213", "Po
 #melt this first
 #mdaughtersdata = melt(daughtersdata, id="times")
 
-plotrows = unique(round(lseq(1, length(timesout), 1000)))
+plotrows = unique(round(lseq(1, length(timesout), 10000)))
 plottimes <- times[plotrows]
 
 
@@ -345,7 +345,7 @@ edaughtersdata = data.frame(times)
 edaughtersdata = cbind(edaughtersdata, eAc225, eFr221, eAt217, eBi213, ePo213, ePb209, eBi209, eRn217, eTl209, eSUM, eSUMoverac225, eLu177, eAlpha, eBeta, eAc227, eTh227, eFr223, eRa223, eRn219, ePo215, ePb211, eBi211, eTl207, ePb207, eAc227SUM)
 colnames(edaughtersdata) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "SUM / Ac-225", "Lu-177 (20 µCi)", "Ac-225 SUM Alpha", "Ac-225 SUM Beta", "Ac-227 (0.2 ?Ci)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM")
 
-eplotrows = unique(round(lseq(1, length(timesout), 1000)))
+eplotrows = unique(round(lseq(1, length(timesout), 10000)))
 eplottimes <- times[eplotrows]
 
 
@@ -369,7 +369,7 @@ rdaughtersdata = data.frame(times)
 rdaughtersdata = cbind(rdaughtersdata, rAc225.Fr221, rFr221.At217, rAt217.Bi213, rAt217.Rn217, rBi213.Po213, rBi213.Tl209, rPo213.Pb209, rPb209.Bi209, rRn217.Po213, rTl209.Pb209, rLu177.Hf177)
 colnames(edaughtersdata) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
 
-rplotrows = unique(round(lseq(1, length(timesout), 1000)))
+rplotrows = unique(round(lseq(1, length(timesout), 10000)))
 rplottimes <- times[rplotrows]
 
 rplotout <- rdaughtersdata[rplotrows, c(1:12)]
@@ -807,7 +807,7 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 
 wellheight = 3.16 #mm height from 100 uL liquid?
 wellradius = 3.175^2 #mm
-cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
+cellheight = 0.013/4 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
 
 
 #point coordinates used for ALL destructions
@@ -816,8 +816,8 @@ phi = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
 pz = runif(length(rplottimes), 0, wellheight)
 
 #scaling factor -- check how close to kD it is?
-pz = pz^7
-pz = pz/wellheight^7*wellheight
+pz = pz^5
+pz = pz/wellheight^5*wellheight
 #end scaling factor
 
 px <- rho*cos(phi)
@@ -1008,7 +1008,7 @@ testmagnitude2 = ((vectorplots1$px[2]-vectorplots1$px[1])^2+(vectorplots1$py[2]-
 #control surface
 rhocirc = sqrt(wellradius)
 phicirc = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
-pzcirc = matrix(runif(length(rplottimes), 0.020, 0.02))
+pzcirc = matrix(runif(length(rplottimes), cellheight, cellheight))
 pzcirc0 = matrix(runif(length(rplottimes), 0, 0))
 pxcirc = rhocirc*cos(phicirc)
 pycirc = rhocirc*sin(phicirc)
@@ -1407,7 +1407,7 @@ for (j in 1:(ncol(dEadxtable2)-1)){
   }
 }
 
-#!!!!!!!!!!!!! negative values appearing in 'dEdxex'
+
 
 #^^^ added a rounding factor for distances greater than possible magnitude, since scale on $Distance varies at row 1251.
 
@@ -1485,7 +1485,14 @@ dEdxexcomborplotout1[,2:12][dEdxexcomborplotout1[,2:12] < 1] = NA
 mdEdxexcomborplotout1 = melt(dEdxexcomborplotout1, id='times')
 colnames(mdEdxexcomborplotout1) = c("times", "Species", "value" )
 
-ggplot(mdEdxexcomborplotout1, aes(x=times, y=value, by=Species))+
+#Just Ac-225 sum and Lu-177
+dEdxexcomborplotout2 = dEdxexcomborplotout1[,c(1,2,12)]
+mdEdxexcomborplotout2 = melt(dEdxexcomborplotout2, id='times')
+colnames(mdEdxexcomborplotout2) = c("times", "Species", "value" )
+
+
+
+ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
   
@@ -1511,6 +1518,12 @@ ggplot(mdEdxexcomborplotout1, aes(x=times, y=value, by=Species))+
   
   
   #guides(shape=guide_legend(override.aes = list(size=3))))
+
+
+#alterantive integration - each time step is exactly the time step, so multiply each destruction energy by the time scale,
+#and add it up? simple as that ?
+
+
 
 
 #### integrate to get cumulative energy absorbed ####
@@ -1540,17 +1553,17 @@ colnames(dEdxexintsumAc225) = "Ac-225 SUM"
 #mass of cells
 #two ways to do this:
 #1) based on confluency
-wellconfluency = 0.5 #confluent for the control volume
-controlvolume = pi*wellradius*cellheight/10^3 #wellradius is already ^2, /10^3 to convert to cm3 from mm3
+wellconfluency = 0.95 #confluent for the control volume
+controlvolume = pi*wellradius*cellheight/(10^3) #wellradius is already ^2, /10^3 to convert to cm3 from mm3
 cellcontrolvolume = controlvolume*wellconfluency
 cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
 
-#2) based on individual cell mass
-cellseedingdensity = 100000 #cells per mL
-cellliquidvolume = 0.1 #mL
-celldensity = 1 #g/cm^3
-cellvolume = (4/3*pi*(cellheight/2)^3)/10^3 #cm^3
-cellmass = celldensity*cellliquidvolume*cellseedingdensity*cellvolume/1000 #kg
+# #2) based on individual cell mass
+# cellseedingdensity = 100000 #cells per mL
+# cellliquidvolume = 0.1 #mL
+# celldensity = 1 #g/cm^3
+# cellvolume = (4/3*pi*(cellheight/2)^3)/10^3 #cm^3
+# cellmass = celldensity*cellliquidvolume*cellseedingdensity*cellvolume/1000 #kg
 
 
 
@@ -1574,7 +1587,7 @@ mdEdxexintGy = melt(dEdxexintGy, id="times")
 colnames(mdEdxexintGy) = c("times", "Species", "value")
 
 
-ggplot(mdEdxexintGy, aes(x=times, y=value, by=Species))+
+ggplot(mdEdxexintMeV, aes(x=times, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
   
@@ -1590,11 +1603,12 @@ ggplot(mdEdxexintGy, aes(x=times, y=value, by=Species))+
         axis.text.y=element_text(colour="black"),
         axis.text.x=element_text(colour="black"))+
   
-  labs(x = "Time (day)", y = "Absorbed Dose (Gy)")+
+  labs(x = "Time (day)", y = "Absorbed Dose (MeV)")+
   theme(text = element_text(size=18, face = "bold"))
 
 
 #check the output
+#dosenumbers = dEdxexintGy[nrow(dEdxexintGy)-1,]
 dosenumbers = rbind(dosenumbers,dEdxexintGy[nrow(dEdxexintGy)-1,])
 
 
