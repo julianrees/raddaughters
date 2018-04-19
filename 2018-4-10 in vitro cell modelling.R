@@ -693,7 +693,7 @@ dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRU
 #maximum distances are based on dEbdxtable maximum values travelled. This intensity plot acts as a random walk for linear energy scaling.
 
 #maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
-maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = dEbdxmaster[which(dEbdxmaster$Lu.Hf == max(dEbdxmaster$Lu.Hf)),1] )
+maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = dEbdxtable3[which(dEbdxtable3$Lu.Hf == max(dEbdxtable3$Lu.Hf)),1] )
 
 halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10],maximumdistances[11]))/8  
   
@@ -802,7 +802,7 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 
 #### SUPER LOOP ####
 its = 10
-dEdxexcomborplotoutSUPER = array(0, dim=c(nrow(rplotout),ncol(rplotout),its))
+dEdxexcomboSUPER = array(0, dim=c(nrow(rplotout),ncol(rplotout),its))
 for (ii in 1:its){  
 
 #### Geometric Modeling ####
@@ -1461,47 +1461,34 @@ dEdxexcombo = cbind(rplotoutex$times, dEdxexcombo)
 colnames(dEdxexcombo) = colnames(rplotoutex)
 
 
-
-
-
-
-
-
-
-
-#### multiply by rplotoutex to get energies per time ####
-dEdxexcomborplotout = matrix(NA, nrow = nrow(rplotout), ncol = ncol(rplotout))
-
-#divide the 'its' iteration event, 'dEdxexcombo' (each iteration is a particle) by 'its' 
-dEdxexcomborplotout = (cbind(rplotoutex$times, ((dEdxexcombo[,2:12]/its)*rplotoutex[,2:12])))
-colnames(dEdxexcomborplotout)[1] = "times"
-
-
-
-
-
 ##### add to array each iteration of 'its' #####
-dEdxexcomborplotoutSUPER[,,ii] = abind(dEdxexcomborplotout)
+dEdxexcomboSUPER[,,ii] = abind(dEdxexcombo)
 print(its-ii)
 
 }
 
 
-dEdxexcomborplotoutSUPERsum = data.frame(matrix(0, ncol=(ncol(dEdxexcomborplotoutSUPER)-1), nrow=nrow(dEdxexcomborplotoutSUPER)))
-for (j in 2:ncol(dEdxexcomborplotoutSUPER)){
-  for (i in 1:nrow(dEdxexcomborplotoutSUPER)){
-    dEdxexcomborplotoutSUPERsum[i,j-1] =  sum(dEdxexcomborplotoutSUPER[i,j,1:its])
+#Get an average energy per destruction
+dEdxexcomboSUPERsum = data.frame(matrix(0, ncol=(ncol(dEdxexcomboSUPER)-1), nrow=nrow(dEdxexcomboSUPER)))
+for (j in 2:ncol(dEdxexcomboSUPER)){
+  for (i in 1:nrow(dEdxexcomboSUPER)){
+    dEdxexcomboSUPERsum[i,j-1] =  sum(dEdxexcomboSUPER[i,j,1:its])
   }
 }
 
 
-dEdxexcomborplotoutSUPERsum = cbind(dEdxexcomborplotoutSUPER[,1,1], dEdxexcomborplotoutSUPERsum)
-colnames(dEdxexcomborplotoutSUPERsum) = colnames(dEdxexcomborplotout)
+#### multiply by rplotoutex to get Power per time ####
+#divide the 'its' iteration event, 'dEdxexcombo' (each iteration is a particle) by 'its' 
+dEdxexcomborplotoutSUPERsum = (cbind(rplotoutex$times, ((dEdxexcomboSUPERsum[,1:11]/its)*rplotoutex[,2:12])))
+colnames(dEdxexcomborplotoutSUPERsum) = colnames(dEdxexcombo)
+colnames(dEdxexcomborplotoutSUPERsum)[1] = "times"
+
+tesrssrs = dEdxexcomboSUPERsum[,1:11]/its
 
 
-
-
-
+plot(x=rplotoutex[,1], y=rplotoutex[,2])
+plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomborplotoutSUPERsum[,2])
+plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomboSUPERsum[,2])
 
 ##old method without loops
 #dEdxexcomborplotout1 = dEdxexcomborplotout
@@ -1516,7 +1503,8 @@ mdEdxexcomborplotout1 = melt(dEdxexcomborplotout1, id='times')
 colnames(mdEdxexcomborplotout1) = c("times", "Species", "value" )
 
 #Just Ac-225 sum and Lu-177
-dEdxexcomborplotout2 = dEdxexcomborplotout1[,c(1,2,12)]
+dEdxexcomborplotout2 = cbind(seq(1,nrow(dEdxexcomborplotout1),1),dEdxexcomborplotout1[,c(2,12)])
+colnames(dEdxexcomborplotout2)[1] = "times"
 mdEdxexcomborplotout2 = melt(dEdxexcomborplotout2, id='times')
 colnames(mdEdxexcomborplotout2) = c("times", "Species", "value" )
 
@@ -1530,7 +1518,7 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
   annotation_logticks(base = 10, sides = "bl", scaled = TRUE,
                       short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
-  
+
   scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
   
   theme_bw() +
@@ -1538,7 +1526,7 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
         axis.text.y=element_text(colour="black"),
         axis.text.x=element_text(colour="black"))+
   
-  labs(x = "Time (day)", y = "Power (MeV/day)")+
+  labs(x = "Time (Days)", y = "Average Power (MeV/day)")+
   theme(text = element_text(size=18, face = "bold"))
         
         # legend.position = c(.05, .05),
@@ -1569,7 +1557,7 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
 
 
 
-
+#and now integrate power into energy via timestep:
 
 
 
@@ -1630,7 +1618,7 @@ mdEdxexintaltGy = melt(dEdxexintaltGy, id="times")
 colnames(mdEdxexintaltGy) = c("times", "Species", "value")
 
 
-ggplot(mdEdxexintaltGy, aes(x=times, y=value, by=Species))+
+ggplot(mdEdxexintaltMeV, aes(x=times, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
   
@@ -1711,7 +1699,7 @@ cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001
 
 
 
-
+#already in MeV units
 dEdxexintMeV = as.data.frame(cbind(rplotout$times, dEdxexintsum, dEdxexintsumAc225))
 colnames(dEdxexintMeV) = colnames(rplotoutex)
 colnames(dEdxexintMeV)[13] = "Ac-225 SUM"
@@ -1720,8 +1708,8 @@ mdEdxexintMeV = melt(dEdxexintMeV, id="times")
 colnames(mdEdxexintMeV) = c("times", "Species", "value")
 
 Gy = 6.242E12 #MeV/kg per Gy
-dEdxexintGy = cbind(dEdxexintsum, dEdxexintsumAc225)
-dEdxexintGy = dEdxexintGy/cellcontrolmass/Gy
+dEdxexintGy1 = cbind(dEdxexintsum, dEdxexintsumAc225)
+dEdxexintGy = dEdxexintGy1/cellcontrolmass/Gy
 dEdxexintGy = as.data.frame(cbind(rplotout$times, dEdxexintGy))
 colnames(dEdxexintGy) = colnames(rplotoutex)
 colnames(dEdxexintGy)[13] = "Ac-225 SUM"
@@ -1729,7 +1717,7 @@ mdEdxexintGy = melt(dEdxexintGy, id="times")
 colnames(mdEdxexintGy) = c("times", "Species", "value")
 
 
-ggplot(mdEdxexintGy, aes(x=times, y=value, by=Species))+
+ggplot(mdEdxexintMeV, aes(x=times, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
   
