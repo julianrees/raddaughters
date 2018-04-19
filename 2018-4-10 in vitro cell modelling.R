@@ -801,16 +801,16 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 
 
 #### SUPER LOOP ####
-its = 10
+its = 20
 dEdxexcomboSUPER = array(0, dim=c(nrow(rplotout),ncol(rplotout),its))
 for (ii in 1:its){  
 
 #### Geometric Modeling ####
 
 
-wellheight = 3.16 #mm height from 100 uL liquid?
-wellradius = 3.175^2 #mm
-cellheight = 0.013/4 #mm -> the interaction zone, phi = 0-2*pi still for rho = well radius
+wellheight = 3.16 #mm height from 100 uL liquid
+wellradius = 3.175^2 #mm -> interaction zone radius squared
+cellheight = 0.013/4 #mm -> the interaction zone height
 
 
 #point coordinates used for ALL destructions
@@ -1477,6 +1477,14 @@ for (j in 2:ncol(dEdxexcomboSUPER)){
 }
 
 
+
+
+
+
+
+
+
+
 #### multiply by rplotoutex to get Power per time ####
 #divide the 'its' iteration event, 'dEdxexcombo' (each iteration is a particle) by 'its' 
 dEdxexcomborplotoutSUPERsum = (cbind(rplotoutex$times, ((dEdxexcomboSUPERsum[,1:11]/its)*rplotoutex[,2:12])))
@@ -1487,8 +1495,8 @@ tesrssrs = dEdxexcomboSUPERsum[,1:11]/its
 
 
 plot(x=rplotoutex[,1], y=rplotoutex[,2])
-plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomborplotoutSUPERsum[,2])
-plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomboSUPERsum[,2])
+plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomborplotoutSUPERsum[,12])
+plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomboSUPERsum[,11])
 
 ##old method without loops
 #dEdxexcomborplotout1 = dEdxexcomborplotout
@@ -1503,7 +1511,7 @@ mdEdxexcomborplotout1 = melt(dEdxexcomborplotout1, id='times')
 colnames(mdEdxexcomborplotout1) = c("times", "Species", "value" )
 
 #Just Ac-225 sum and Lu-177
-dEdxexcomborplotout2 = cbind(seq(1,nrow(dEdxexcomborplotout1),1),dEdxexcomborplotout1[,c(2,12)])
+dEdxexcomborplotout2 = dEdxexcomborplotout1[,c(1,2,12)]#cbind(seq(1,nrow(dEdxexcomborplotout1),1),dEdxexcomborplotout1[,c(2,12)])
 colnames(dEdxexcomborplotout2)[1] = "times"
 mdEdxexcomborplotout2 = melt(dEdxexcomborplotout2, id='times')
 colnames(mdEdxexcomborplotout2) = c("times", "Species", "value" )
@@ -1514,12 +1522,13 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
   
-  scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000))+
-  annotation_logticks(base = 10, sides = "bl", scaled = TRUE,
+  scale_x_continuous(breaks=c(seq(0,timedays,timedays/5)))+
+  annotation_logticks(base = 10, sides = "l", scaled = TRUE,
                       short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
 
   scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
+  ylim(10^6,10^8)+
   
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
@@ -1557,91 +1566,91 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
 
 
 
-#and now integrate power into energy via timestep:
-
-
-
-dEdxexintalt = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
-dEdxexintaltsum = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
-
-for (j in 2:ncol(rplotout)){
-  for(i in 1:(length(rplotout[,1])-1)){
-    dEdxexintalt[i,j-1] = times[i]*dEdxexcomborplotoutSUPERsum[i,j]
-    dEdxexintaltsum[i,j-1] = sum(dEdxexintalt[1:i,j-1])  
-  }
-}
-
-
-#sum of all ac-225 daighters
-
-dEdxexintaltsumAc225 = matrix(NA, ncol = 1, nrow = nrow(dEdxexintaltsum))
-for (i in 1:nrow(dEdxexintaltsum)){
-  dEdxexintaltsumAc225[i] = sum(dEdxexintaltsum[i,1:ncol(dEdxexintaltsum)])
-}
-colnames(dEdxexintaltsumAc225) = "Ac-225 SUM"
-
-
-#mass of cells
-#two ways to do this:
-#1) based on confluency
-wellconfluency = 0.95 #confluent for the control volume
-controlvolume = pi*wellradius*cellheight/(10^3) #wellradius is already ^2, /10^3 to convert to cm3 from mm3
-cellcontrolvolume = controlvolume*wellconfluency
-cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
-
-# #2) based on individual cell mass
-# cellseedingdensity = 100000 #cells per mL
-# cellliquidvolume = 0.1 #mL
-# celldensity = 1 #g/cm^3
-# cellvolume = (4/3*pi*(cellheight/2)^3)/10^3 #cm^3
-# cellmass = celldensity*cellliquidvolume*cellseedingdensity*cellvolume/1000 #kg
-
-
-
-
-
-
-dEdxexintaltMeV = as.data.frame(cbind(rplotout$times, dEdxexintaltsum, dEdxexintaltsumAc225))
-colnames(dEdxexintaltMeV) = colnames(rplotoutex)
-colnames(dEdxexintaltMeV)[13] = "Ac-225 SUM"
-
-mdEdxexintaltMeV = melt(dEdxexintaltMeV, id="times")
-colnames(mdEdxexintaltMeV) = c("times", "Species", "value")
-
-Gy = 6.242E12 #MeV/kg per Gy
-dEdxexintaltGy = cbind(dEdxexintaltsum, dEdxexintaltsumAc225)
-dEdxexintaltGy = dEdxexintaltGy/cellcontrolmass/Gy
-dEdxexintaltGy = as.data.frame(cbind(rplotout$times, dEdxexintaltGy))
-colnames(dEdxexintaltGy) = colnames(rplotoutex)
-colnames(dEdxexintaltGy)[13] = "Ac-225 SUM"
-mdEdxexintaltGy = melt(dEdxexintaltGy, id="times")
-colnames(mdEdxexintaltGy) = c("times", "Species", "value")
-
-
-ggplot(mdEdxexintaltMeV, aes(x=times, y=value, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
-  
-  scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000))+
-  annotation_logticks(base = 10, sides = "bl", scaled = TRUE,
-                      short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
-                      colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
-  
-  scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
-  
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  
-  labs(x = "Time (day)", y = "Absorbed Dose (MeV)")+
-  theme(text = element_text(size=18, face = "bold"))
-
-
-#check the output
-#dosenumbers = dEdxexintGy[nrow(dEdxexintGy)-1,]
-dosenumbers = rbind(dosenumbers,dEdxexintGy[nrow(dEdxexintGy)-1,])
-
+# #and now integrate power into energy via timestep:
+# 
+# 
+# 
+# dEdxexintalt = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
+# dEdxexintaltsum = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
+# 
+# for (j in 2:ncol(rplotout)){
+#   for(i in 1:(length(rplotout[,1])-1)){
+#     dEdxexintalt[i,j-1] = times[i]*dEdxexcomborplotoutSUPERsum[i,j]
+#     dEdxexintaltsum[i,j-1] = sum(dEdxexintalt[1:i,j-1])  
+#   }
+# }
+# 
+# 
+# #sum of all ac-225 daighters
+# 
+# dEdxexintaltsumAc225 = matrix(NA, ncol = 1, nrow = nrow(dEdxexintaltsum))
+# for (i in 1:nrow(dEdxexintaltsum)){
+#   dEdxexintaltsumAc225[i] = sum(dEdxexintaltsum[i,1:ncol(dEdxexintaltsum)])
+# }
+# colnames(dEdxexintaltsumAc225) = "Ac-225 SUM"
+# 
+# 
+# #mass of cells
+# #two ways to do this:
+# #1) based on confluency
+# wellconfluency = 0.95 #confluent for the control volume
+# controlvolume = pi*wellradius*cellheight/(10^3) #wellradius is already ^2, /10^3 to convert to cm3 from mm3
+# cellcontrolvolume = controlvolume*wellconfluency
+# cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
+# 
+# # #2) based on individual cell mass
+# # cellseedingdensity = 100000 #cells per mL
+# # cellliquidvolume = 0.1 #mL
+# # celldensity = 1 #g/cm^3
+# # cellvolume = (4/3*pi*(cellheight/2)^3)/10^3 #cm^3
+# # cellmass = celldensity*cellliquidvolume*cellseedingdensity*cellvolume/1000 #kg
+# 
+# 
+# 
+# 
+# 
+# 
+# dEdxexintaltMeV = as.data.frame(cbind(rplotout$times, dEdxexintaltsum, dEdxexintaltsumAc225))
+# colnames(dEdxexintaltMeV) = colnames(rplotoutex)
+# colnames(dEdxexintaltMeV)[13] = "Ac-225 SUM"
+# 
+# mdEdxexintaltMeV = melt(dEdxexintaltMeV, id="times")
+# colnames(mdEdxexintaltMeV) = c("times", "Species", "value")
+# 
+# Gy = 6.242E12 #MeV/kg per Gy
+# dEdxexintaltGy = cbind(dEdxexintaltsum, dEdxexintaltsumAc225)
+# dEdxexintaltGy = dEdxexintaltGy/cellcontrolmass/Gy
+# dEdxexintaltGy = as.data.frame(cbind(rplotout$times, dEdxexintaltGy))
+# colnames(dEdxexintaltGy) = colnames(rplotoutex)
+# colnames(dEdxexintaltGy)[13] = "Ac-225 SUM"
+# mdEdxexintaltGy = melt(dEdxexintaltGy, id="times")
+# colnames(mdEdxexintaltGy) = c("times", "Species", "value")
+# 
+# 
+# ggplot(mdEdxexintaltMeV, aes(x=times, y=value, by=Species))+
+#   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
+#   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
+#   
+#   scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000))+
+#   annotation_logticks(base = 10, sides = "bl", scaled = TRUE,
+#                       short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
+#                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
+#   
+#   scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
+#   
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
+#         axis.text.y=element_text(colour="black"),
+#         axis.text.x=element_text(colour="black"))+
+#   
+#   labs(x = "Time (day)", y = "Absorbed Dose (MeV)")+
+#   theme(text = element_text(size=18, face = "bold"))
+# 
+# 
+# #check the output
+# #dosenumbers = dEdxexintGy[nrow(dEdxexintGy)-1,]
+# dosenumbers = rbind(dosenumbers,dEdxexintGy[nrow(dEdxexintGy)-1,])
+# 
 
 
 
@@ -1687,6 +1696,8 @@ wellconfluency = 0.95 #confluent for the control volume
 controlvolume = pi*wellradius*cellheight/(10^3) #wellradius is already ^2, /10^3 to convert to cm3 from mm3
 cellcontrolvolume = controlvolume*wellconfluency
 cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
+cellvolume = ((4/3)*pi*((cellheight*3)^2)*cellheight)/10^3 #cm^3 -> 4/3*pi*radius^2*height = oblate spheroid volume
+numberofcells = cellcontrolvolume/cellvolume
 
 # #2) based on individual cell mass
 # cellseedingdensity = 100000 #cells per mL
@@ -1709,7 +1720,12 @@ colnames(mdEdxexintMeV) = c("times", "Species", "value")
 
 Gy = 6.242E12 #MeV/kg per Gy
 dEdxexintGy1 = cbind(dEdxexintsum, dEdxexintsumAc225)
-dEdxexintGy = dEdxexintGy1/cellcontrolmass/Gy
+
+#### convert to Gy per cell ####
+dEdxexintGy = dEdxexintGy1/cellcontrolmass/Gy/numberofcells
+
+
+
 dEdxexintGy = as.data.frame(cbind(rplotout$times, dEdxexintGy))
 colnames(dEdxexintGy) = colnames(rplotoutex)
 colnames(dEdxexintGy)[13] = "Ac-225 SUM"
@@ -1717,7 +1733,7 @@ mdEdxexintGy = melt(dEdxexintGy, id="times")
 colnames(mdEdxexintGy) = c("times", "Species", "value")
 
 
-ggplot(mdEdxexintMeV, aes(x=times, y=value, by=Species))+
+ggplot(mdEdxexintGy, aes(x=times, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
   
@@ -1733,7 +1749,7 @@ ggplot(mdEdxexintMeV, aes(x=times, y=value, by=Species))+
         axis.text.y=element_text(colour="black"),
         axis.text.x=element_text(colour="black"))+
   
-  labs(x = "Time (day)", y = "Absorbed Dose (MeV)")+
+  labs(x = "Time (day)", y = "Absorbed Dose/Cell (MeV)")+
   theme(text = element_text(size=18, face = "bold"))
 
 
