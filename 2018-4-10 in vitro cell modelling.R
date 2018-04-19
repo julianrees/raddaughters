@@ -164,7 +164,7 @@ daughters = function(t, state, parameters, probabilities) {with(as.list(c(state,
 #Ac-227 timefame
 #timedays = 365*21.772                                     #total days for plot
 timedays = 4
-timestep = 0.001                                   #step size
+timestep = 0.01                                   #step size
 timestepout = 1/timestep                           #to make a timesout match starting at 1
 
 times = seq(0, timedays, by = timestep)     #list all points
@@ -690,8 +690,11 @@ dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRU
   
 
 ##### rplotoutdistances #####
+#maximum distances are based on dEbdxtable maximum values travelled. This intensity plot acts as a random walk for linear energy scaling.
 
-maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
+#maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
+maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = dEbdxmaster[which(dEbdxmaster$Lu.Hf == max(dEbdxmaster$Lu.Hf)),1] )
+
 halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10],maximumdistances[11]))/8  
   
 #rplotoutdistances has paired magnitude data to destructions per day from rplotout
@@ -748,8 +751,8 @@ colnames(mintensityplotsorder1) = c("Frequency","Species","value")
 ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+ 
-  scale_x_continuous(breaks=c(0,2,4,6,8))+
-  scale_y_continuous(breaks=c(0,100,200,300,400,500,600))+
+  scale_x_log10(breaks=c(lseq(0.0025,0.0025*4^6,7)))+
+  scale_y_continuous(breaks=c(0,250,500,750,1000,1250,1500,1750,2000,2250,2500))+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   labs(x = "Distance (mm)", y = "Frequency", color="Species")+
@@ -797,10 +800,10 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 # 
 
 
-
-
-
-  
+#### SUPER LOOP ####
+its = 10
+dEdxexcomborplotoutSUPER = array(0, dim=c(nrow(rplotout),ncol(rplotout),its))
+for (ii in 1:its){  
 
 #### Geometric Modeling ####
 
@@ -841,9 +844,9 @@ for (j in 1:11){
 }
 
 
-pc = cellheight/cos(theta) #->>pc is the path length of particle interacting through cells
-pr = pz-cellheight  #radius from particle to cell surface
-pb = pr/cos(theta) #magnitude prior to cell surface interaction
+# pc = cellheight/cos(theta) #->>pc is the path length of particle interacting through cells
+# pr = pz-cellheight  #radius from particle to cell surface
+# pb = pr/cos(theta) #magnitude prior to cell surface interaction
 
 ########################## get distance from the rplotoutdistances
 # Rho = function(distance)
@@ -1015,36 +1018,19 @@ pycirc = rhocirc*sin(phicirc)
 
 controlsurface = data.frame(rplottimes, pxcirc, pycirc, pzcirc, pzcirc0)
 
-# as.character(vectorplots$zz)
+#### !PLOTLY #### 
+# plot_ly() %>% 
+#   add_trace(data = vectorplotsLu177, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
+#             line = list(width = 1, color = "#000000"),
+#             marker = list(size = 3, showscale = FALSE))%>%
+#   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 # 
-#vectorplots$zz = as.numeric(vectorplots$Species)
-
-plot_ly() %>% 
-  add_trace(data = vectorplotsLu177, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
-            line = list(width = 1, color = "#000000"),
-            marker = list(size = 3, showscale = FALSE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
-
-##### geometric model figure ##### -> vectorplots$Species needs to be "numeric" for correct lines
-plot_ly() %>% 
-  add_trace(data = vectorplots1, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
-            marker = list(size = 3, showscale = FALSE),
-            line = list(width = 1, color = "#000000", showscale = FALSE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
-
-# plot_ly(positions) %>% 
-#   add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
-#             marker = list(color = 'blue', size = 3)) #%>% 
-#  # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
-#   #          marker = list(color = '#0C4B8E', size = 3))
-#             
-
-
-# plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '#0C4B8E'),
-#       type = 'scatter3d',
-#       mode = 'markers', #symbols = c('circle','x','o'),
-#       marker = list(size = 3))#,color = I('black'), )
-# 
+# ##### geometric model figure ##### -> vectorplots$Species needs to be "numeric" for correct lines
+# plot_ly() %>% 
+#   add_trace(data = vectorplots1, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
+#             marker = list(size = 3, showscale = FALSE),
+#             line = list(width = 1, color = "#000000", showscale = FALSE))%>%
+#   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
 
 
@@ -1248,6 +1234,7 @@ for (i in 1:nrow(vectorplotsLu177ex)){
 #   if (vectorplotsLu177ex[i,5] == 0 & !is.na(vectorplotsLu177ex[i,5])) {vectorplotsLu177ex[i,5] = NA}
 # }
 
+#There are only 1 starting positions, but 10 elecments for finishing vector?
 vectorplotiex = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
 vectorplotfex = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
 
@@ -1287,23 +1274,23 @@ for (i in 1:nrow(vectorplots1ex)){
 #   if (vectorplots1ex[i,5] == 0 & !is.na(vectorplots1ex[i,5])) {vectorplots1ex[i,5] = NA}
 # }
 
-#plot it
+#### !PLOTLY####
 
-
-plot_ly() %>% 
-  add_trace(data = vectorplotsLu177ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~number, color = ~number, colors = "Paired",
-            marker = list(size = 4, showscale = TRUE),
-            line = list(width = 1.5, color = "#000000", showscale = TRUE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc0, type="mesh3d")%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d", showscale = FALSE)
-
-plot_ly() %>% 
-  add_trace(data = vectorplots1ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
-            marker = list(size = 4, showscale = TRUE),
-            line = list(width = 1.5, color = "#000000", showscale = FALSE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc0, type="mesh3d", showscale = FALSE)%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d", showscale = FALSE)
-
+# 
+# plot_ly() %>% 
+#   add_trace(data = vectorplotsLu177ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~number, color = ~number, colors = "Paired",
+#             marker = list(size = 4, showscale = TRUE),
+#             line = list(width = 1.5, color = "#000000", showscale = TRUE))%>%
+#   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc0, type="mesh3d")%>%
+#   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d", showscale = FALSE)
+# 
+# plot_ly() %>% 
+#   add_trace(data = vectorplots1ex, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
+#             marker = list(size = 4, showscale = TRUE),
+#             line = list(width = 1.5, color = "#000000", showscale = FALSE))%>%
+#   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc0, type="mesh3d", showscale = FALSE)%>%
+#   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d", showscale = FALSE)
+# 
 
 
 
@@ -1473,11 +1460,54 @@ dEdxexcombo = dEadxex+dEadxex20+dEadxex2h+dEbdxex+dEbdxex20+dEbdxex2h
 dEdxexcombo = cbind(rplotoutex$times, dEdxexcombo)
 colnames(dEdxexcombo) = colnames(rplotoutex)
 
-#multiply by rplotoutex to get energies per time
+
+
+
+
+
+
+
+
+
+#### multiply by rplotoutex to get energies per time ####
 dEdxexcomborplotout = matrix(NA, nrow = nrow(rplotout), ncol = ncol(rplotout))
-dEdxexcomborplotout = (cbind(rplotoutex$times, (dEdxexcombo[,2:12]*rplotoutex[,2:12])))
+
+#divide the 'its' iteration event, 'dEdxexcombo' (each iteration is a particle) by 'its' 
+dEdxexcomborplotout = (cbind(rplotoutex$times, ((dEdxexcombo[,2:12]/its)*rplotoutex[,2:12])))
 colnames(dEdxexcomborplotout)[1] = "times"
-dEdxexcomborplotout1 = dEdxexcomborplotout
+
+
+
+
+
+##### add to array each iteration of 'its' #####
+dEdxexcomborplotoutSUPER[,,ii] = abind(dEdxexcomborplotout)
+print(its-ii)
+
+}
+
+
+dEdxexcomborplotoutSUPERsum = data.frame(matrix(0, ncol=(ncol(dEdxexcomborplotoutSUPER)-1), nrow=nrow(dEdxexcomborplotoutSUPER)))
+for (j in 2:ncol(dEdxexcomborplotoutSUPER)){
+  for (i in 1:nrow(dEdxexcomborplotoutSUPER)){
+    dEdxexcomborplotoutSUPERsum[i,j-1] =  sum(dEdxexcomborplotoutSUPER[i,j,1:its])
+  }
+}
+
+
+dEdxexcomborplotoutSUPERsum = cbind(dEdxexcomborplotoutSUPER[,1,1], dEdxexcomborplotoutSUPERsum)
+colnames(dEdxexcomborplotoutSUPERsum) = colnames(dEdxexcomborplotout)
+
+
+
+
+
+
+##old method without loops
+#dEdxexcomborplotout1 = dEdxexcomborplotout
+##end old
+
+dEdxexcomborplotout1 = dEdxexcomborplotoutSUPERsum
 
 #remove the zeros so they are not plotted
 dEdxexcomborplotout1[,2:12][dEdxexcomborplotout1[,2:12] < 1] = NA
@@ -1526,6 +1556,118 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dEdxexintalt = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
+dEdxexintaltsum = matrix(NA, ncol = (ncol(rplotout)-1), nrow = nrow(rplotout))
+
+for (j in 2:ncol(rplotout)){
+  for(i in 1:(length(rplotout[,1])-1)){
+    dEdxexintalt[i,j-1] = times[i]*dEdxexcomborplotoutSUPERsum[i,j]
+    dEdxexintaltsum[i,j-1] = sum(dEdxexintalt[1:i,j-1])  
+  }
+}
+
+
+#sum of all ac-225 daighters
+
+dEdxexintaltsumAc225 = matrix(NA, ncol = 1, nrow = nrow(dEdxexintaltsum))
+for (i in 1:nrow(dEdxexintaltsum)){
+  dEdxexintaltsumAc225[i] = sum(dEdxexintaltsum[i,1:ncol(dEdxexintaltsum)])
+}
+colnames(dEdxexintaltsumAc225) = "Ac-225 SUM"
+
+
+#mass of cells
+#two ways to do this:
+#1) based on confluency
+wellconfluency = 0.95 #confluent for the control volume
+controlvolume = pi*wellradius*cellheight/(10^3) #wellradius is already ^2, /10^3 to convert to cm3 from mm3
+cellcontrolvolume = controlvolume*wellconfluency
+cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
+
+# #2) based on individual cell mass
+# cellseedingdensity = 100000 #cells per mL
+# cellliquidvolume = 0.1 #mL
+# celldensity = 1 #g/cm^3
+# cellvolume = (4/3*pi*(cellheight/2)^3)/10^3 #cm^3
+# cellmass = celldensity*cellliquidvolume*cellseedingdensity*cellvolume/1000 #kg
+
+
+
+
+
+
+dEdxexintaltMeV = as.data.frame(cbind(rplotout$times, dEdxexintaltsum, dEdxexintaltsumAc225))
+colnames(dEdxexintaltMeV) = colnames(rplotoutex)
+colnames(dEdxexintaltMeV)[13] = "Ac-225 SUM"
+
+mdEdxexintaltMeV = melt(dEdxexintaltMeV, id="times")
+colnames(mdEdxexintaltMeV) = c("times", "Species", "value")
+
+Gy = 6.242E12 #MeV/kg per Gy
+dEdxexintaltGy = cbind(dEdxexintaltsum, dEdxexintaltsumAc225)
+dEdxexintaltGy = dEdxexintaltGy/cellcontrolmass/Gy
+dEdxexintaltGy = as.data.frame(cbind(rplotout$times, dEdxexintaltGy))
+colnames(dEdxexintaltGy) = colnames(rplotoutex)
+colnames(dEdxexintaltGy)[13] = "Ac-225 SUM"
+mdEdxexintaltGy = melt(dEdxexintaltGy, id="times")
+colnames(mdEdxexintaltGy) = c("times", "Species", "value")
+
+
+ggplot(mdEdxexintaltGy, aes(x=times, y=value, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
+  
+  scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000))+
+  annotation_logticks(base = 10, sides = "bl", scaled = TRUE,
+                      short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
+                      colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
+  
+  scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
+  
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  
+  labs(x = "Time (day)", y = "Absorbed Dose (MeV)")+
+  theme(text = element_text(size=18, face = "bold"))
+
+
+#check the output
+#dosenumbers = dEdxexintGy[nrow(dEdxexintGy)-1,]
+dosenumbers = rbind(dosenumbers,dEdxexintGy[nrow(dEdxexintGy)-1,])
+
+
+
+
+
+
+
+
+
+
+
+
+
+### original method
+
 #### integrate to get cumulative energy absorbed ####
 
 #set null variables:
@@ -1536,7 +1678,7 @@ dEdxexintsumAc225 = NULL
 
 for (j in 2:ncol(rplotout)){
   for(i in 1:(length(rplotout[,1])-1)){
-      dEdxexint[i,j-1] = ((dEdxexcomborplotout[i+1,1]-dEdxexcomborplotout[i,1])/8)*(dEdxexcomborplotout[i,j]+3*((2*dEdxexcomborplotout[i,2]+dEdxexcomborplotout[i+1,j])/3)+3*((dEdxexcomborplotout[i,j]+2*dEdxexcomborplotout[i+1,j])/3)+dEdxexcomborplotout[i+1,j])
+      dEdxexint[i,j-1] = ((dEdxexcomborplotoutSUPERsum[i+1,1]-dEdxexcomborplotoutSUPERsum[i,1])/8)*(dEdxexcomborplotoutSUPERsum[i,j]+3*((2*dEdxexcomborplotoutSUPERsum[i,2]+dEdxexcomborplotoutSUPERsum[i+1,j])/3)+3*((dEdxexcomborplotoutSUPERsum[i,j]+2*dEdxexcomborplotoutSUPERsum[i+1,j])/3)+dEdxexcomborplotoutSUPERsum[i+1,j])
       dEdxexintsum[i,j-1] = sum(dEdxexint[1:i,j-1])
     }
   }
@@ -1587,7 +1729,7 @@ mdEdxexintGy = melt(dEdxexintGy, id="times")
 colnames(mdEdxexintGy) = c("times", "Species", "value")
 
 
-ggplot(mdEdxexintMeV, aes(x=times, y=value, by=Species))+
+ggplot(mdEdxexintGy, aes(x=times, y=value, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=2, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24))+  
   
@@ -1609,6 +1751,7 @@ ggplot(mdEdxexintMeV, aes(x=times, y=value, by=Species))+
 
 #check the output
 #dosenumbers = dEdxexintGy[nrow(dEdxexintGy)-1,]
+
 dosenumbers = rbind(dosenumbers,dEdxexintGy[nrow(dEdxexintGy)-1,])
 
 
