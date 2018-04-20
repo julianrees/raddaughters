@@ -484,6 +484,37 @@ dEastart = function(e,j){astepsize*dEadxstart(e,j)}
 valpha = function(Exa){(2*Exa/malpha)^0.5}
 #Exa = e0alpha(v0alpha(1,1))
 
+#adapted from 'The Atomic Nucleus' book, Evans 1955, page 636 
+#Charge vs velocity plot
+
+
+velocities = seq(2600000,17000000, 100000)
+meancharge = zalpha(velocities)
+chargevsvelocity = data.frame(cbind(velocities, meancharge))
+colnames(chargevsvelocity) = c("Velocities (m/s)", "Alpha Charge")
+mchargevsvelocity = melt(chargevsvelocity, id='Velocities (m/s)')
+colnames(mchargevsvelocity) = c('Velocities (m/s)', 'Species', 'value')
+
+
+ggplot(mchargevsvelocity, aes(x=mchargevsvelocity[,1], y=value, by=Species))+
+  geom_line(aes(color=Species), size=3)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  #scale_x_continuous(breaks=c(seq(0,10^8,4*10^6)))+
+  xlim(0,1.7E7)+
+  ylim(0,2)+
+  #scale_y_continuous()+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Velocity (m/s)", y = "Alpha Charge", color='Species')+
+  theme(text = element_text(size=24, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"),
+        legend.position="none")#+
+  #guides(shape=guide_legend(override.aes = list(size=3)))  
+
+
+
+
 
 #Beta dE/dx
 bstepsize = 0.00001 #mm
@@ -573,6 +604,29 @@ ggplot(mdEadxtable1, aes(x=Distance, y=value, by=Species))+
   
 
 
+#velocity vs distance
+
+#create veolity profile table
+dEadxtablevel = cbind(dEadxtable[,3,])
+dEadxtablevelocity = data.frame(cbind(dEadxtable[,1,1], dEadxtablevel))
+colnames(dEadxtablevelocity)[1] = "Distance"
+mdEadxtablevelocity = melt(dEadxtablevelocity, id="Distance")
+colnames(mdEadxtablevelocity) = c("Distance", "Species", "value")
+
+ggplot(mdEadxtablevelocity, aes(x=mdEadxtablevelocity[,1], y=value, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_continuous()+
+  scale_y_continuous()+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "Velocity (m/s)", color='Species')+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))  
+
+
 
 
 ##### Beta dE/dx #####
@@ -653,7 +707,7 @@ colnames(mdEbdxtable2) = c('Distance', 'Species', 'value')
 ggplot(mdEbdxtable1[which(mdEbdxtable1$Distance != 0),], aes(x=Distance, y=value, by=Species, color = Species))+
   geom_line(size=2, alpha=1)+
   #scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_log10(breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10))+
+  scale_x_continuous()+#(breaks=c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10))+
   scale_y_log10(breaks=c(0.125, 0.25, 0.5, 1, 2, 4, 8))+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -678,6 +732,32 @@ ggplot(mdEbdxtable1[which(mdEbdxtable1$Distance != 0),], aes(x=Distance, y=value
 #         axis.text.y=element_text(colour="black"),
 #         axis.text.x=element_text(colour="black"))+
 #   guides(shape=guide_legend(override.aes = list(size=3))) 
+
+
+
+#velocity vs distance
+
+#create veolity profile table
+dEbdxtablevel = cbind(dEbdxtable[,3,])
+dEbdxtablevelocity = data.frame(cbind(dEbdxtable[,1,1], dEbdxtablevel))
+colnames(dEbdxtablevelocity)[1] = "Distance"
+mdEbdxtablevelocity = melt(dEbdxtablevelocity, id="Distance")
+colnames(mdEbdxtablevelocity) = c("Distance", "Species", "value")
+
+ggplot(mdEbdxtablevelocity, aes(x=mdEbdxtablevelocity[,1], y=value, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_continuous()+
+  scale_y_continuous()+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "Velocity (m/s)", color='Species')+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))  
+
+
 
 
 
@@ -811,7 +891,7 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 
 
 #### SUPER LOOP ####
-its = 20
+its = 10
 dEdxexcomboSUPER = array(0, dim=c(nrow(rplotout),ncol(rplotout),its))
 for (ii in 1:its){  
 
@@ -820,7 +900,9 @@ for (ii in 1:its){
 
 wellheight = 3.16 #mm height from 100 uL liquid
 wellradius = 3.175^2 #mm -> interaction zone radius squared
-cellheight = 0.013/3 #mm -> the interaction zone height
+aspectratio = 5 # ratio width/height
+cellheight = 0.02/aspectratio #mm -> the interaction zone height
+
 
 
 #point coordinates used for ALL destructions
@@ -829,8 +911,8 @@ phi = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
 pz = runif(length(rplottimes), 0, wellheight)
 
 #scaling factor -- check how close to kD it is?
-pz = pz^7
-pz = pz/wellheight^7*wellheight
+pz = pz^9
+pz = pz/wellheight^9*wellheight
 #end scaling factor
 
 px <- rho*cos(phi)
@@ -1690,12 +1772,17 @@ colnames(dEdxexintsumAc225) = "Ac-225 SUM"
 #mass of cells
 #two ways to do this:
 #1) based on confluency
-wellconfluency = 1 #confluent for the control volume
+wellconfluency = 0.95 #confluent for the control volume
 controlvolume = pi*wellradius*cellheight/(10^3) #wellradius is already ^2, /10^3 to convert to cm3 from mm3
 cellcontrolvolume = controlvolume*wellconfluency
 cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
-cellvolume = ((4/3)*pi*((cellheight*3)^2)*cellheight)/10^3 #cm^3 -> 4/3*pi*radius^2*height = oblate spheroid volume
-numberofcells = cellcontrolvolume/cellvolume
+cellvolume = ((1/6)*pi*((cellheight*aspectratio)^2)*cellheight)/10^3#((1/6)*pi*((cellheight*3)^2)*cellheight)/10^3 #cm^3 -> 1/6*pi*diameteracross^2*diameterheight = oblate spheroid volume
+deadvolume = (cellheight*aspectratio)^2*cellheight/10^3-cellvolume #box-spheroid volume = dead space
+deadvolumeratio = deadvolume/cellvolume
+numberofcells = (cellcontrolvolume*deadvolumeratio)/cellvolume #maximum number of cells at full confluency, since per cell dosage
+
+#
+
 
 # #2) based on individual cell mass
 # cellseedingdensity = 100000 #cells per mL
