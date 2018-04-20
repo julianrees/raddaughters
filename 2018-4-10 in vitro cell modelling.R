@@ -230,10 +230,10 @@ plottimes <- times[plotrows]
 #Ac-227 are c(1,15,16,17,18,19,20,21,22,23,24,25)
 
 #Ac-225&Lu-177/Hf-177 *****#8 is Bi-209 final product
-#plotout <- daughtersdata[plotrows, c(1,2,3,4,5,6,7,9,10,8,11)]#,13,14)]
+plotout <- daughtersdata[plotrows, c(1,2,3,4,5,6,7,9,10,8,11)]#,13,14)]
 
 #Ac-227
-plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
+#plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
 plotout = plotout[-1,] #remove first row
 
 mplotout <- melt(plotout, id="times")
@@ -343,7 +343,7 @@ eAc227SUM = (eAc227+eTh227+eFr223+eRa223+eRn219+ePo215+ePb211+eBi211+eTl207+ePb2
 
 edaughtersdata = data.frame(times)
 edaughtersdata = cbind(edaughtersdata, eAc225, eFr221, eAt217, eBi213, ePo213, ePb209, eBi209, eRn217, eTl209, eSUM, eSUMoverac225, eLu177, eAlpha, eBeta, eAc227, eTh227, eFr223, eRa223, eRn219, ePo215, ePb211, eBi211, eTl207, ePb207, eAc227SUM)
-colnames(edaughtersdata) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "SUM / Ac-225", "Lu-177 (20 µCi)", "Ac-225 SUM Alpha", "Ac-225 SUM Beta", "Ac-227 (0.2 ?Ci)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM")
+colnames(edaughtersdata) = c("times", "Ac-225 (30 nCi)", "Fr-221", "At-217", "Bi-213", "Po-213", "Pb-209", "Bi-209", "Rn-217", "Tl-209", "Ac-225 SUM", "SUM / Ac-225", "Lu-177 (4000 nCi)", "Ac-225 SUM Alpha", "Ac-225 SUM Beta", "Ac-227 (0.2 ?Ci)", "Th-227", "Fr-223", "Ra-223", "Rn-219", "Po-215", "Pb-211", "Bi-211", "Tl-207", "Pb-207", "Ac-227 SUM")
 
 eplotrows = unique(round(lseq(1, length(timesout), 10000)))
 eplottimes <- times[eplotrows]
@@ -367,13 +367,13 @@ rLu177.Hf177 = Lu177*dpmlu177*(probabilities[12])*1440
 
 rdaughtersdata = data.frame(times)
 rdaughtersdata = cbind(rdaughtersdata, rAc225.Fr221, rFr221.At217, rAt217.Bi213, rAt217.Rn217, rBi213.Po213, rBi213.Tl209, rPo213.Pb209, rPb209.Bi209, rRn217.Po213, rTl209.Pb209, rLu177.Hf177)
-colnames(edaughtersdata) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
+colnames(edaughtersdata) = c("times", "Ac225.Fr221 (30 nCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (4000 nCi)")
 
 rplotrows = unique(round(lseq(1, length(timesout), 10000)))
 rplottimes <- times[rplotrows]
 
 rplotout <- rdaughtersdata[rplotrows, c(1:12)]
-colnames(rplotout) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
+colnames(rplotout) = c("times", "Ac225.Fr221 (30 nCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (4000 nCi)")
 
 
 #
@@ -752,14 +752,24 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+ 
   scale_x_log10(breaks=c(lseq(0.0025,0.0025*4^6,7)))+
-  scale_y_continuous(breaks=c(0,250,500,750,1000,1250,1500,1750,2000,2250,2500))+
+  scale_y_continuous(breaks=c(0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000))+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   labs(x = "Distance (mm)", y = "Frequency", color="Species")+
+  
+  annotation_logticks(base = 10, sides = "b", scaled = TRUE,
+                      short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
+                      colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
+  
   theme(text = element_text(size=18, face = "bold"),
         axis.text.y=element_text(colour="black"),
         axis.text.x=element_text(colour="black"))+
   guides(shape=guide_legend(override.aes = list(size=3)))
+
+
+
+
+
 
 
 #can combo plot like so:
@@ -810,7 +820,7 @@ for (ii in 1:its){
 
 wellheight = 3.16 #mm height from 100 uL liquid
 wellradius = 3.175^2 #mm -> interaction zone radius squared
-cellheight = 0.013/4 #mm -> the interaction zone height
+cellheight = 0.013/3 #mm -> the interaction zone height
 
 
 #point coordinates used for ALL destructions
@@ -819,8 +829,8 @@ phi = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
 pz = runif(length(rplottimes), 0, wellheight)
 
 #scaling factor -- check how close to kD it is?
-pz = pz^5
-pz = pz/wellheight^5*wellheight
+pz = pz^7
+pz = pz/wellheight^7*wellheight
 #end scaling factor
 
 px <- rho*cos(phi)
@@ -1468,6 +1478,10 @@ print(its-ii)
 }
 
 
+
+
+
+
 #Get an average energy per destruction
 dEdxexcomboSUPERsum = data.frame(matrix(0, ncol=(ncol(dEdxexcomboSUPER)-1), nrow=nrow(dEdxexcomboSUPER)))
 for (j in 2:ncol(dEdxexcomboSUPER)){
@@ -1528,7 +1542,6 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
 
   scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
-  ylim(10^6,10^8)+
   
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
@@ -1547,24 +1560,9 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
   #guides(shape=guide_legend(override.aes = list(size=3))))
 
 
+
 #alterantive integration - each time step is exactly the time step, so multiply each destruction energy by the time scale,
 #and add it up? simple as that ?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # #and now integrate power into energy via timestep:
 # 
@@ -1692,7 +1690,7 @@ colnames(dEdxexintsumAc225) = "Ac-225 SUM"
 #mass of cells
 #two ways to do this:
 #1) based on confluency
-wellconfluency = 0.95 #confluent for the control volume
+wellconfluency = 1 #confluent for the control volume
 controlvolume = pi*wellradius*cellheight/(10^3) #wellradius is already ^2, /10^3 to convert to cm3 from mm3
 cellcontrolvolume = controlvolume*wellconfluency
 cellcontrolmass = cellcontrolvolume*0.001 #density = 1 g/mL, or 1 kg/L, or 0.001 kg/cm^3
