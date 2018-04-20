@@ -891,7 +891,7 @@ ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
 
 
 #### SUPER LOOP ####
-its = 10
+its = 25
 dEdxexcomboSUPER = array(0, dim=c(nrow(rplotout),ncol(rplotout),its))
 for (ii in 1:its){  
 
@@ -1590,9 +1590,9 @@ colnames(dEdxexcomborplotoutSUPERsum)[1] = "times"
 tesrssrs = dEdxexcomboSUPERsum[,1:11]/its
 
 
-plot(x=rplotoutex[,1], y=rplotoutex[,2])
+plot(x=rplotoutex[,1], y=rplotoutex[,12])
 plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomborplotoutSUPERsum[,12])
-plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomboSUPERsum[,11])
+plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomboSUPERsum[,11]/its)
 
 ##old method without loops
 #dEdxexcomborplotout1 = dEdxexcomborplotout
@@ -1600,7 +1600,7 @@ plot(x=dEdxexcomborplotoutSUPERsum[,1], y=dEdxexcomboSUPERsum[,11])
 
 dEdxexcomborplotout1 = dEdxexcomborplotoutSUPERsum
 
-#remove the zeros so they are not plotted
+#remove any zeros so they are not plotted
 dEdxexcomborplotout1[,2:12][dEdxexcomborplotout1[,2:12] < 1] = NA
 
 mdEdxexcomborplotout1 = melt(dEdxexcomborplotout1, id='times')
@@ -1623,7 +1623,7 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
                       short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
 
-  scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
+  scale_y_continuous(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
   
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
