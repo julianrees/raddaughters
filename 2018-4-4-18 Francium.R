@@ -10,9 +10,6 @@ library(stats)
 library(plotly)
 library(cowplot)
 library(gridExtra)
-library(abind)
-library(RColorBrewer)
-#library(asmath)
 
 #Forces scientific notation only for >> numbers
 #options(scipen=defaults)
@@ -52,9 +49,9 @@ activity = c(k1 = 58, k2 = 176026.2, k3 = 1609541800, k4 = 20000, k5 = 1.3*10^13
              k12 = 0.072, k13 = 31, k14 = 38926.9, k15 = 51.2, k16 = 13008438.4, k17 = 29461992937, k18 = 24639.1739, k19 = 416405.3549, k20 = 190584.9219, k21 = 0) 
 
 #initial activity in uCi
-uciac225 =  0.17 #0.1 nCi = 220 CPM  ->>>> divide by #major species (5) if in transient equilibrium, don't include minor species.
-ucilu177 = 21 
-uciac227 = 1 #/8 divide by # starting @EQ (8) to get total dose equivalency, don't include minor species.
+uciac225 =  0.17/1000 #0.1 nCi = 220 CPM  ->>>> divide by #major species (5) if in transient equilibrium, don't include minor species.
+ucilu177 = 21/1000 
+uciac227 = 0.002 #/8 divide by # starting @EQ (8) to get total dose equivalency, don't include minor species.
 
 #Initial nmoles of actinium-225
 #use the mol ratios #agged out to start at transient equilibiurm - but change the uciac225 starting activity accordingly as well.
@@ -64,17 +61,25 @@ uciac227 = 1 #/8 divide by # starting @EQ (8) to get total dose equivalency, don
   #For ac-227, however, there are several long lived isotopes (Th-227, Fr-223, Ra-223) which last at least 11 days. A 227 conjugation will have these isotopes
   #on the antibody as well (probably - have to look at dota efficiency for Ra-223)
 
+#3 day equilibrium numbers
+EQnum = c(1.057009e-08,3.616078e-12,3.972766e-16,3.402997e-11,5.068525e-20,1.461998e-10,2.270190e-09,5.114168e-21,3.341722e-14,7.889644e-07)
+EQratio = EQnum/1.057009e-08
 
 #assume Ac-225 only upon mAb metallation / washing.
 nmolesac225 = uciac225/58/225
-nmolesfr221 = 0 #3.42E-04*nmolesac225
-nmolesat217 = 0 #3.76E-08*nmolesac225
-nmolesbi213 = 0 #3.22E-03*nmolesac225
-nmolespo213 = 0 #4.80E-12*nmolesac225
-nmolespb209 = 0 #1.38E-02*nmolesac225
-nmolesbi209 = 0 #1/10*nmolesac225 #starting with 1 day equilibrium
-nmolesrn217 = 0 #4.84E-13*nmolesac225
-nmolestl209 = 0 #3.16E-06*nmolesac225
+nmolesfr221 = 1*EQratio[2]*nmolesac225
+nmolesat217 = EQratio[3]*nmolesac225
+nmolesbi213 = EQratio[4]*nmolesac225
+nmolespo213 = EQratio[5]*nmolesac225
+nmolespb209 = EQratio[6]*nmolesac225
+nmolesbi209 = EQratio[7]*nmolesac225 #starting with 1 day equilibrium
+nmolesrn217 = EQratio[8]*nmolesac225
+nmolestl209 = EQratio[9]*nmolesac225
+
+
+
+
+
 
 nmoleslu177 = ucilu177/110/177
 
@@ -103,7 +108,7 @@ dpmac227 = uciac227*2220000
 
 
 #lambda values are ln(2)/t(1/2) with t1/2 in days
-parameters = c(l1 = 0.069663033, l2 = 203.7003959, l3 = 1854115.059, l4 = 21.69852043, l5 = 14259027714, l6 = 5.118625333, l7 = 8.75554E-19, l8 = 110903548.9, l9 = 461.8842851, l10 = 0.104232659, l11 = 0,
+parameters = c(l1 = 0.069663033, l2 = 206.5115, l3 = 1854115, l4 = 21.69852043, l5 = 14259027714, l6 = 5.118625333, l7 = 8.75554E-19, l8 = 110903548.9, l9 = 461.8842851, l10 = 0.104232659, l11 = 0,
                l12 = 8.72237E-05,l13 = 0.03710638,l14 = 46.08181,l15 = 0.060642798,l16 = 15123.21121,l17 = 33626005.84,l18 = 27.59862689,l19 = 466.4167944,l20 = 209.4275997,l21 = 0)
 
 
@@ -158,11 +163,10 @@ daughters = function(t, state, parameters, probabilities) {with(as.list(c(state,
   list(c(dA, dB, dC, dD, dE, df, dG, dH, dI, dJ, dK, dL, dM, dN, dO, dP, dQ, dR, dS, dt, dU))
 })}
 
-##### Time scale #####
 #Ac-227 timefame
 #timedays = 365*21.772                                     #total days for plot
-timedays = 35
-timestep = 0.01                                   #step size
+timedays = 3
+timestep = 0.001                                   #step size
 timestepout = 1/timestep                           #to make a timesout match starting at 1
 
 times = seq(0, timedays, by = timestep)     #list all points
@@ -228,10 +232,10 @@ plottimes <- times[plotrows]
 #Ac-227 are c(1,15,16,17,18,19,20,21,22,23,24,25)
 
 #Ac-225&Lu-177/Hf-177 *****#8 is Bi-209 final product
-#plotout <- daughtersdata[plotrows, c(1,2,3,4,5,6,7,9,10,8,11)]#,13,14)]
+plotout <- daughtersdata[plotrows, c(1,2,3,8)]#,4,5,6,7,9,10,8,11)]#,13,14)]
 
 #Ac-227
-plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
+#plotout <- daughtersdata[plotrows, c(1,15,16,17,18,19,20,21,22,23,24,25)] 
 plotout = plotout[-1,] #remove first row
 
 mplotout <- melt(plotout, id="times")
@@ -249,7 +253,7 @@ ggplot(mplotout, aes(x=times, y=value, by=Species))+
                       short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
   
-  scale_y_continuous(labels = scales::percent, breaks=c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))+
+  scale_y_continuous(labels = scales::percent, breaks=c(0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))+
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   labs(x = "Time (day)", y = "% Activity(t) / Ac-225(0)", color="Species")+
@@ -346,37 +350,9 @@ colnames(edaughtersdata) = c("times", "Ac-225 (0.2 µCi)", "Fr-221", "At-217", "
 eplotrows = unique(round(lseq(1, length(timesout), 1000)))
 eplottimes <- times[eplotrows]
 
-
-###### destructions per day vs days
-##### rplotout ####
-rAc225.Fr221 = Ac225*dpmac225*(probabilities[1])*1440
-rFr221.At217 = Fr221*dpmac225*(probabilities[2])*1440
-rAt217.Bi213 = At217*dpmac225*probabilities[3]*1440
-rAt217.Rn217 = At217*dpmac225*probabilities[7]*1440
-rBi213.Po213 = Bi213*dpmac225*probabilities[4]*1440
-rBi213.Tl209 = Bi213*dpmac225*probabilities[8]*1440
-rPo213.Pb209 = Po213*dpmac225*(probabilities[5])*1440
-rPb209.Bi209 = Pb209*dpmac225*(probabilities[6])*1440
-rRn217.Po213 = Rn217*dpmac225*(probabilities[9])*1440
-rTl209.Pb209 = Tl209*dpmac225*(probabilities[10])*1440
-rLu177.Hf177 = Lu177*dpmlu177*(probabilities[12])*1440
-
-
-
-rdaughtersdata = data.frame(times)
-rdaughtersdata = cbind(rdaughtersdata, rAc225.Fr221, rFr221.At217, rAt217.Bi213, rAt217.Rn217, rBi213.Po213, rBi213.Tl209, rPo213.Pb209, rPb209.Bi209, rRn217.Po213, rTl209.Pb209, rLu177.Hf177)
-colnames(edaughtersdata) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
-
-rplotrows = unique(round(lseq(1, length(timesout), 1000)))
-rplottimes <- times[rplotrows]
-
-rplotout <- rdaughtersdata[rplotrows, c(1:12)]
-colnames(rplotout) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
-
-
 #
 ##
-##### dE/dX modeling #####
+######
 #############  Add in spatial coordinates! Each destruction is one atom, so that works out. Each destruction starts steady state
 ######         Add in vertical weighting based on cell interactions, kd's etc.
 ##
@@ -424,342 +400,52 @@ mmpermeter = 1000 #mm/m
 
 
 
-
+maximumdistances = data.frame("Ac225" = 0.065, "Fr221" = 1, "At217" = 1, "Bi213" = 10, "Po213" = 1, "Pb209" = 10, "Bi209" = 10, "Rn217" = 10, "Tl209" = 10, "Lu177" = 0.41202 )
 #Initial kinetic energy
 #alpha
 
 #j numbers, 1=Ac225, 2=Fr221, 3=at217, 4=bi213, 5=po213, 6=pb209, 7=bi209, 8=rn217, 9=tl209, 10=lu177, 11=
-imasses = matrix(c('Ac225' = 225, 'Fr221' = 221, 'At217' = 217, 'Bi213' = 213, 'Po213' = 213, 'Pb209' = 209, 'Bi209' = 209, 'Rn217' = 217, 'Tl209' = 209, 'Lu177' = 177, 'Hf177' = 177, j12 = 227, j13 = 227, j14 = 223, j15 = 223, j16 = 219, j17 = 215, j18 = 211, j19 = 211, j20 = 207, j21 = 207))
-ienergies = matrix(c(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.4227/3, epo2pb = 8.536, epb2bi = 0.644/3, eat2rn = 0.737/3, ebi2tl = 5.98, ern2po = 7.88, etl2pb = 3.976/3, ebi2tl205 = 3.137, elu2hfbeta = 0.497/3, elu2hfgamma1 = 0.208, elu2hfgamma2 = 0.113, eac2th227 = 0.044/3, eac2fr227 = 5.04, efr2ra223 = 1.149/3, eth2ra223 = 6.1466, era2rn219 = 5.97899, ern2po215 = 6.94612, epo2pb211 = 7.52626, epb2bi211 = 1.36697/3, ebi2tl207 = 6.75033, etl2pb207 = 1.41824, epb2stable = 0))
-
-alphamassenergytable = matrix(NA, nrow=2, ncol=6)
-alphamassenergytable = rbind(c(imasses[1],imasses[2],imasses[3],imasses[4],imasses[5],imasses[8]),c(ienergies[1],ienergies[2],ienergies[3],ienergies[8],ienergies[5],ienergies[9]))
-colnames(alphamassenergytable) = c("Ac.Fr","Fr.At","At.Bi","Bi.Tl","Po.Pb","Rn.Po")
-
-#alpha
-# mass
-# 1 2 3 4 5 8
-# energy
-# 1 2 3 8 5 9
-
-#beta
-# mass
-# 3 9 6 10
-# energy
-# 7 10 6 
-
-#At2Rn, Tl2Pb, Pb2Bi, Lu2Hf
-
-betamassenergytable = matrix(data=NA, nrow=2, ncol=5)
-betamassenergytable = rbind(c(imasses[4],imasses[3],imasses[9],imasses[6],imasses[10]),c(ienergies[4],ienergies[7],ienergies[10],ienergies[6],ienergies[12]))
-colnames(betamassenergytable) = c("Bi.Po","At.Rn","Tl.Pb","Pb.Bi","Lu.Hf")
-
-#for all
-dstart = 0
+imasses = data.frame('Ac225' = 225, 'Fr221' = 221, 'At217' = 217, 'Bi213' = 213, 'Po213' = 213, 'Pb209' = 209, 'Bi209' = 209, 'Rn217' = 217, 'Tl209' = 209, 'Lu177' = 177, 'Hf177' = 177, j12 = 227, j13 = 227, j14 = 223, j15 = 223, j16 = 219, j17 = 215, j18 = 211, j19 = 211, j20 = 207, j21 = 207)
+ienergies = data.frame(eac2fr = 5.935, efr2at = 6.46, eat2bi = 7.20, ebi2po = 1.4227/3, epo2pb = 8.536, epb2bi = 0.644/3, eat2rn = 0.737/3, ebi2tl = 5.98, ern2po = 7.88, etl2pb = 3.976/3, ebi2tl205 = 3.137, elu2hfbeta = 0.497/3, elu2hfgamma1 = 0.208, elu2hfgamma2 = 0.113, eac2th227 = 0.044/3, eac2fr227 = 5.04, efr2ra223 = 1.149/3, eth2ra223 = 6.1466, era2rn219 = 5.97899, ern2po215 = 6.94612, epo2pb211 = 7.52626, epb2bi211 = 1.36697/3, ebi2tl207 = 6.75033, etl2pb207 = 1.41824, epb2stable = 0)
 
 
 #alpha inital
-v0alpha = function(e,j){((2*alphamassenergytable[2,e]*(10^6)*joulesperev)/(malpha+(malpha^2)/((alphamassenergytable[1,j])/1000/Na)))^0.5} #ienergy is in MeV, so multiply by 10^6 and convert to J
+#write either  -> ke(1000000,1,1) or ke(1000000,'eac2fr','Ac225') etc.
+v0alpha = function(e,j){((2*ienergies[,e]*(10^6)*joulesperev)/(malpha+(malpha^2)/((imasses[,j])/1000/Na)))^0.5} #ienergy is in MeV, so multiply by 10^6 and convert to J
 e0alpha = function(v){0.5*malpha*v^2}
 
 
 #beta initial
-lorentz0 = function(e){betamassenergytable[2,e]/0.511+1}
+lorentz0 = function(e){ienergies[,e]/0.511+1} #12 is Lu1772Hf
 v0beta = function(lorentz){sol*(1-(1/lorentz)^2)^0.5}
+
 e0beta = function(lorentz){(lorentz-1)*me*sol^2}
   
 #Alpha dE/dx
-astepsize = 0.0001 #mm
+astepsize = 0.00005 #mm
 adistances = NULL
 
-
-
-#zalpha is the charge as a function of velocity due to picking up electrons, starts at 2, goes to 0 eventually when slow enough.
+  #zalpha is the charge as a function of velocity due to picking up electrons, starts at 2, goes to 0 eventually when slow enough.
 zalpha = function(v){0.0094*(v*100/10^9)^5-0.2591*(v*100/10^9)^4+1.6336*(v*100/10^9)^3-4.2678*(v*100/10^9)^2+5.0412*(v*100/10^9)-0.2426} #v is in m/s
-dEadx = function(v){(((4*pi*zalpha(v)^2)/(me*v^2))*((Na*Z*densitywater)/(A*Mu))*(echarge^2/(4*pi*e0))^2*(log((2*me*v^2)/ion)))/mmpermeter}
-dEadxstart = function(e,j){dEadx(v0alpha(e,j))}
-dEastart = function(e,j){astepsize*dEadxstart(e,j)}
-valpha = function(Exa){(2*Exa/malpha)^0.5}
-#Exa = e0alpha(v0alpha(1,1))
+dEadx = function(v){(((4*pi*zalpha(v)^2)/(me*v^2))*((Na*Z*densitywater)/(A*Mu))*(echarge^2/(4*pi*e0))^2*(LN((2*me*v^2)/ion)))/mmpermeter}
+
+Exa = Ex[i-1]-dExadx[i-1]*astepsize
+
+via = function(Exa){(2*Exa/malpha)^0.5}
 
 
 #Beta dE/dx
-bstepsize = 0.00001 #mm
+bstepsize = 0.0001 #mm
 bdistances = NULL
 
-
-#Exb = function(e){e0beta(lorentz0(e))}
-dEbdx = function(v,Exb){((2*pi/(v^2*me))*(Na*Z*densitywater/(A*Mu))*((echarge^2)/(4*pi*e0))^2)*(log(((me*v^2*Exb)/(2*ion^2))*(1+(Exb/(me*sol^2)))^2)-log(2)*((1-(v/sol)^2)^0.5-(1-(v/sol)^2)/2)+((1-(1-(v/sol)^2)^0.5)^2)/16)/mmpermeter}
-dEbdxstart = function(j){dEbdx(v0beta(lorentz0(j)),e0beta(lorentz0(j)))}
-dEbstart = function(j){bstepsize*dEbdxstart(j)}
-vbeta = function(lorentzi){sol*(1-(1/lorentzi)^2)^0.5}
-lorentzi = function(Exb){Exb/(me*sol^2)+1}
-
-# testarray = array(data=seq(1,24,1), dim=c(2,3,4))
-# dimnames(testarray) = list(c('A','B'),c('C','D','E'),c('f','g','h','i'))
-# dimnames(testarray) = list(c('a','b','c'),c('d','e','f'),c('g','h','i'),c('j','k','l'))
-
-# testarray = array(NA,dim=c(2,6,6))
-# for(j in 1:6){
-#   for(i in 1:6){
-#     testarray[1,i,j] = i
-#     testarray[2,i,j] = i+1
-#   }
-# }
-
-#dEadxtable = data.frame(dstart, dEadxstart, v0alpha(1,1), e0alpha(v0alpha(1,1)), dEastart, zalpha(v0alpha(1,1)))
-
-##### Alpha dE/dx #####
-#finite difference method - start matrix with initial conditions and fill in by row until dE/dx <0
-#column 7 is integration of dE/dx by stepsize
-dEadxtable = array(data=NA, dim=c(1250,7,6), dimnames=list(NULL,c('Distance (mm)', 'dE/dx (MeV/mm)', 'Velocity (m/s)', 'E(x) (MeV)', 'deltaE(x) (MeV)', 'Charge', 'Energy Integration'),c("Ac-Fr", "Fr-At", "At-Bi", "Bi-Tl", "Po-Pb", "Rn-Po")))
-for(j in 1:6){
-for(i in 1:(nrow(dEadxtable)-1)){
-  dEadxtable[1,1,j] = dstart #mm
-  dEadxtable[1,2,j] = dEadxstart(j,j) #MeV/mm
-  dEadxtable[1,3,j] = v0alpha(j,j) #m/s
-  dEadxtable[1,4,j] = e0alpha(v0alpha(j,j)) #MeV
-  dEadxtable[1,5,j] = dEastart(j,j) #MeV
-  dEadxtable[1,6,j] = zalpha(v0alpha(j,j)) #charge
-  dEadxtable[1,7,j] = 0
-  
-  dEadxtable[i+1,1,j] = astepsize*i
-  dEadxtable[i+1,4,j] = dEadxtable[i,4,j]-dEadxtable[i,5,j] #E(x)
-  dEadxtable[i+1,3,j] = valpha(dEadxtable[i+1,4,j]) #v(E)
-  dEadxtable[i+1,6,j] = zalpha(dEadxtable[i+1,3,j]) #z(v)
-  dEadxtable[i+1,2,j] = dEadx(dEadxtable[i+1,3,j]) #dEadx(v)
-  dEadxtable[i+1,5,j] = (dEadxtable[i+1,1,j]-dEadxtable[i,1,j])*(dEadxtable[i+1,2,j]+dEadxtable[i,2,j])/2 #dEa
-  dEadxtable[i+1,7,j] = ((dEadxtable[i+1,1,j]-dEadxtable[i,1,j])/8)*(dEadxtable[i,2,j]+3*((2*dEadxtable[i,2,j]+dEadxtable[i+1,2,j])/3)+3*((dEadxtable[i,2,j]+2*dEadxtable[i+1,2,j])/3)+dEadxtable[i+1,2,j])
-    
-}
-}
-#colnames(dEadxtable) = c('dx', 'dE/dx', 'v', 'E(x)', 'deltaE(x)', 'z(v)')
-
-#Change to MeV for dE/dx and integration
-dEadxtablemev = dEadxtable[,c(2,7),]/1000000/joulesperev
-dEadxtable1 = data.frame(cbind(dEadxtable[,1,1],dEadxtablemev[,1,]))
-colnames(dEadxtable1)[1] = 'Distance'
-dEadxtable2 = data.frame(cbind(dEadxtable[,1,1],dEadxtablemev[,2,]))
-colnames(dEadxtable2)[1] = 'Distance'
-
-#1 is dE/dx
-mdEadxtable1 = melt(dEadxtable1, id='Distance')
-colnames(mdEadxtable1) = c('Distance', 'Species', 'value')
-#2 is integrated dE/dx
-mdEadxtable2 = melt(dEadxtable2, id='Distance')
-colnames(mdEadxtable2) = c('Distance', 'Species', 'value')
-
-ggplot(mdEadxtable1, aes(x=Distance, y=value, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_continuous()+
-  scale_y_continuous()+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color='Species')+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))  
-  
-
-
-
-
-##### Beta dE/dx #####
-#At2Rn, Tl2Pb, Pb2Bi, Lu2Hf
-
-#finite difference method - start matrix with initial conditions and fill in by row until dE/dx <0
-#column 7 is integration of dE/dx by stepsize
-dEbdxtable = array(data=NA, dim=c(2500,7,5), dimnames=list(NULL,c('Distance (mm)', 'dE/dx (MeV/mm)', 'Velocity (m/s)', 'E(x) (MeV)', 'deltaE(x) (MeV)', 'Charge', 'Energy Integration'),c("Bi-Po", "At-Rn", "Tl-Pb", "Pb-Bi", "Lu-Hf")))
-for(j in 1:5){
-  for(i in 1:(nrow(dEbdxtable)-1)){
-    dEbdxtable[1,1,j] = dstart #mm
-    dEbdxtable[1,2,j] = dEbdxstart(j) #MeV/mm
-    dEbdxtable[1,3,j] = v0beta(lorentz0(j)) #m/s
-    dEbdxtable[1,4,j] = e0beta(lorentz0(j)) #MeV
-    dEbdxtable[1,5,j] = dEbstart(j) #MeV
-    dEbdxtable[1,6,j] = zbeta #charge
-    dEbdxtable[1,7,j] = 0
-    
-    dEbdxtable[i+1,1,j] = bstepsize*i^1.75
-    dEbdxtable[i+1,4,j] = dEbdxtable[i,4,j]-dEbdxtable[i,5,j] #E(x)
-    dEbdxtable[i+1,3,j] = vbeta(lorentzi(dEbdxtable[i+1,4,j])) #v(E)
-    dEbdxtable[i+1,6,j] = zbeta #z(v)
-    dEbdxtable[i+1,2,j] = dEbdx(dEbdxtable[i+1,3,j],dEbdxtable[i+1,4,j]) #dEadx(v,E(x))
-    dEbdxtable[i+1,5,j] = (dEbdxtable[i+1,1,j]-dEbdxtable[i,1,j])*(dEbdxtable[i+1,2,j]+dEbdxtable[i,2,j])/2 #dEa
-    dEbdxtable[i+1,7,j] = ((dEbdxtable[i+1,1,j]-dEbdxtable[i,1,j])/8)*(dEbdxtable[i,2,j]+3*((2*dEbdxtable[i,2,j]+dEbdxtable[i+1,2,j])/3)+3*((dEbdxtable[i,2,j]+2*dEbdxtable[i+1,2,j])/3)+dEbdxtable[i+1,2,j])
-    
-  }
-}
-#colnames(dEadxtable) = c('dx', 'dE/dx', 'v', 'E(x)', 'deltaE(x)', 'z(v)')
-
-#Change to MeV for dE/dx and integration
-dEbdxtablemev = dEbdxtable[,c(2,7),]/1000000/joulesperev
-dEbdxtable1 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,1,]))
-colnames(dEbdxtable1)[1] = 'Distance'
-dEbdxtable2 = data.frame(cbind(dEbdxtable[,1,1],dEbdxtablemev[,2,]))
-colnames(dEbdxtable2)[1] = 'Distance'
-
-#remove negative values from data frames
-dEbdxtable1[dEbdxtable1 <0 ] <- NA
-dEbdxtable2[dEbdxtable2 <0 ] <- NA
-
-
-#1 is dE/dx
-mdEbdxtable1 = melt(dEbdxtable1, id='Distance')
-colnames(mdEbdxtable1) = c('Distance', 'Species', 'value')
-#2 is integrated dE/dx
-mdEbdxtable2 = melt(dEbdxtable2, id='Distance')
-colnames(mdEbdxtable2) = c('Distance', 'Species', 'value')
-
-ggplot(mdEbdxtable1, aes(x=Distance, y=value, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-  scale_x_log10(breaks=c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10))+
-  scale_y_log10(breaks=c(0.125, 0.25, 0.5, 1, 2, 4, 8))+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color='Species')+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))  
-
+lorentzi = function() 
 
 
 
 
   
-dEbdxtable2sum = c(sum(dEbdxtable2[,2],na.rm=TRUE),sum(dEbdxtable2[,3],na.rm=TRUE),sum(dEbdxtable2[,4],na.rm=TRUE),sum(dEbdxtable2[,5],na.rm=TRUE))
   
-
-
-
-
-
-
-
-
-
-
   
-
-##### rplotoutdistances #####
-
-maximumdistances = data.frame("Ac-Fr" = 0.0674, "Fr-At" = 0.0754, "At-Bi" = 0.0876, "Bi-Tl" = 0.0680, "Po-Pb" = 0.1119, "Rn-Po" = 0.0996, "Bi-Po" = 2.034659, "At-Rn" = 0.7790638, "Tl-Pb" = 7.476779, "Pb-Bi" = 0.6326188, "Lu-Hf" = 0.4210299 )
-halfdistances = data.frame(c(maximumdistances[7],maximumdistances[8],maximumdistances[9],maximumdistances[10],maximumdistances[11]))/8  
-  
-
-rplotoutdistances <- data.frame(cbind(rplottimes, maximumdistances))
-
-#re-arrange to match rplotout species order
-rplotoutdistances = data.frame(cbind(rplotoutdistances[,c(1,2,3,4,9,8,5,6,11,7,10,12)]))
-colnames(rplotoutdistances) = c("times", "Ac225.Fr221 (0.2 µCi)", "Fr221.At217", "At217.Bi213", "At217.Rn217", "Bi213.Po213", "Bi213.Tl209", "Po213.Pb209", "Pb209.Bi209", "Rn217.Po213", "Tl209.Pb209", "Lu177.Hf177 (20 µCi)")
-
-#random number generator for beta particle distances
-#5 beta particles
-#add on additional columns with random numbers from 0 to the maximum distances based on dE/dx which will give random beta particle intensity distrubiton data
-for (i in 1:5){
-  for (h in 1:(length(plottimes)-1)){
-    rplotoutdistances[h,12+i] = cbind((runif(1, 0, maximumdistances[,i+6])))
-  }
-}
-
-colnames(rplotoutdistances)[c(13,14,15,16,17)] = c("rintensity Bi.Po", "rintensity At.Rn", "rintensity Tl.Pb", "rintensity Pb.Bi", "rintensity Lu.Hf")
-
-#now scale those intensity columns accordingly, and populate Beta emitting columns 6 5 11 9 12 with new scaled total distance data
-
-#still using 1/3 max beta energy since it's a distribution and most are 1/3 as energetic as the max.
-#beta using ionization depletion from - http://www.physics.smu.edu/~scalise/emmanual/radioactivity/lab.html
-
-#h = row 1:length(rplotoutdistances)
-#columns = c(6,5,11,9,12)
-#i = half distances, 7 8 9 10 11
-#j =c(1,2,3,4,5) -> Bi.po, At.Rn, Tl.Pb, Pb.Bi, Lu.Hf
-rintensitybeta = function(x,i,j){(maximumdistances[i])*2^(-x/(halfdistances[j]))} #MeV/mm
-
-for (h in 1:(length(rplottimes)-1)){
-  
-  rplotoutdistances[h,6] = rintensitybeta(rplotoutdistances[h,13],7,1)
-  rplotoutdistances[h,5] = rintensitybeta(rplotoutdistances[h,14],8,2)
-  rplotoutdistances[h,11] = rintensitybeta(rplotoutdistances[h,15],9,3)
-  rplotoutdistances[h,9] = rintensitybeta(rplotoutdistances[h,16],10,4)
-  rplotoutdistances[h,12] = rintensitybeta(rplotoutdistances[h,17],11,5)
-  
-}
-
-frequencynumbers = seq(1,length(rplottimes),1)
-intensityplots = data.frame(cbind(rplotoutdistances[,c(6,5,11,9,12)]))
-intensityplotsorder = data.frame(cbind(frequencynumbers,sort(intensityplots[,1], decreasing=TRUE), sort(intensityplots[,2], decreasing=TRUE), sort(intensityplots[,3], decreasing=TRUE), sort(intensityplots[,4], decreasing=TRUE), sort(intensityplots[,5], decreasing=TRUE)))
-colnames(intensityplotsorder) = c("Frequency","Bi.Po","At.Rn","Tl.Pb","Pb.Bi","Lu.Hf")
-
-mintensityplotsorder = melt(intensityplotsorder, id="Frequency")
-colnames(mintensityplotsorder) = c("Frequency","Species","value")
-
-mintensityplotsorder1 = melt(intensityplotsorder[,c(1,6)], id="Frequency")
-colnames(mintensityplotsorder1) = c("Frequency","Species","value")
-
-
-ggplot(mintensityplotsorder, aes(x=value, y=Frequency, by=Species))+
-  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+ 
-  scale_x_continuous(breaks=c(0,2,4,6,8))+
-  scale_y_continuous(breaks=c(0,100,200,300,400,500,600))+
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  labs(x = "Distance (mm)", y = "Frequency", color="Species")+
-  theme(text = element_text(size=18, face = "bold"),
-        axis.text.y=element_text(colour="black"),
-        axis.text.x=element_text(colour="black"))+
-  guides(shape=guide_legend(override.aes = list(size=3)))
-
-
-#can combo plot like so:
-
-# 
-# AcLET = ggplot(mintensityAc225, aes(x=Distances, y=LET, by=Species))+
-#   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-#   scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-#   scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
-#   scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-#   labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
-#   theme(text = element_text(size=18, face = "bold"),
-#         axis.text.y=element_text(colour="black"),
-#         axis.text.x=element_text(colour="black"))+
-#   guides(shape=guide_legend(override.aes = list(size=3)))
-# 
-# LuLET = ggplot(mintensityLu177, aes(x=Distances, y=LET, by=Species))+
-#   geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
-#   scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
-#   scale_x_continuous(breaks=c(0.0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4))+#0.4, 0.8, 1.2, 1.6))+
-#   scale_y_continuous(breaks=c(0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.4))+
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-#   labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
-#   theme(text = element_text(size=18, face = "bold"),
-#         axis.text.y=element_text(colour="black"),
-#         axis.text.x=element_text(colour="black"))+
-#   guides(shape=guide_legend(override.aes = list(size=3)))
-# 
-# grid.arrange(AcLET, LuLET, nrow = 1)
-# 
-# write.csv(intensitytestbeta, "intensitybetarecent.csv", sep="\t")
-# 
-# 
-# 
-# 
-
-
-
-
-
-  
-
-#### Geometric Modeling ####
-
 
 wellheight = 3.16 #mm
 wellradius = 3.175^2 #mm
@@ -769,13 +455,16 @@ cellheight = 0.02 #mm -> the interaction zone, phi = 0-2*pi still for rho = well
 #maximum distance travelled for vector (mm)
 
 
-pmaximumb = 7.476779 #runif(length(times), 0, maximumdistances[,'Lu177'])
+pmaximumb = 2 #runif(length(times), 0, maximumdistances[,'Lu177'])
 
+
+Lu177pathlength =  #mm on average
+Lu177halfdistance = maximumdistances[,'Lu177']
 
 #point coordinates used for ALL destructions
-rho = sqrt(runif(length(rplottimes), 0, wellradius))
-phi = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
-pz = runif(length(rplottimes), 0, wellheight)
+rho = sqrt(runif(length(times), 0, wellradius))
+phi = runif(length(times), 0, 2*pi) #lowercase phi is the point location
+pz = runif(length(times), 0, wellheight)
 
 #scaling factor -- check how close to kD it is?
 pz = pz^4
@@ -785,50 +474,19 @@ pz = pz/wellheight^4*wellheight
 px <- rho*cos(phi)
 py <- rho*sin(phi)
 
-#Create unique trajectories for all destructions, but starting at the same initial antibody point
-
-theta = data.frame(matrix(NA, ncol = 11, nrow = length(rplottimes)))
-Phi = data.frame(matrix(NA, ncol = 11, nrow = length(rplottimes)))
-
-for (j in 1:11){
-  for (i in 1:length(rplottimes)){
-  theta[i,j] = data.frame(cbind(runif(1, 0, 2*pi))) #theta is for random vertical trajectory of destruction
-  Phi[i,j] = data.frame(cbind(runif(1, 0, 2*pi)))
-}
-}
-
-
+theta = runif(length(times), 0, 2*pi)
+Phi = runif(length(times), 0, 2*pi) #capital Phi is the point trajectory
 pc = cellheight/cos(theta) #->>pc is the path length of particle interacting through cells
 pr = pz-cellheight  #radius from particle to cell surface
-pb = pr/cos(theta) #magnitude prior to cell surface interaction
+pb = pr/cos(theta)
 
-########################## get distance from the rplotoutdistances
-Rho = function(distance)
-  {distance*sin(theta) 
-}
-
-
+########################## choose if alpha or beta distance, capital Rho is point magnitude
+Rho = pmaximumb*sin(theta) #data.frame('Ac225' = maximumdistances[,'Ac225']*sin(theta))
 
 #Vector coordinates
-
-#example vector calcs for final positions
-# testx11 = (rplotoutdistances[1,2])*sin(theta[1,1])*cos(Phi[1,1])+px[1]
-# testx21 = (rplotoutdistances[2,2])*sin(theta[2,1])*cos(Phi[2,1])+px[2]
-
-
-
-Px = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
-Py = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
-Pz = data.frame(matrix(NA,ncol = 11, nrow = length(rplottimes)))
-
-#rplotoutdistances at columns [2:12] to create unique output vector positions
-for (i in 1:length(rplottimes)){
-  for (j in 1:11){
-    Px[i,j] = data.frame(cbind(px[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*cos(Phi[i,j])))
-    Py[i,j] = data.frame(cbind(py[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])*sin(Phi[i,j])))
-    Pz[i,j] = data.frame(cbind(pz[i] + sin(theta[i,j])*(rplotoutdistances[i,j+1])/tan(theta[i,j])))
-}
-}
+Px = px - Rho*cos(Phi)
+Py = py - Rho*sin(Phi)
+Pz = pz - Rho/tan(theta)
 
 
 
@@ -839,122 +497,119 @@ for (i in 1:length(rplottimes)){
 #test vector magnitude
 pmag = ((Px-px)^2+(Py-py)^2+(Pz-pz)^2)^0.5
 
-#Array of initial points, 1 column, x y z deep and rplottimes long
-positions = array(c(px,py,pz), dim = c(length(rplottimes),1,3))
 
-#Array of final points, 11 elements wide, y x z deep and rplottimes long
-vectors = array(abind(Px, Py, Pz), dim = c(length(rplottimes),11,3))
+#still using 1/3 max beta energy since it's a distribution and most aren't that energenic, most are 1/3 as energetic as the max.
 
-#for plotting purposes, give each starting point a 0 designation, and give each other element 1:11
-
-vectorplotiLu177 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
-vectorplotfLu177 = data.frame(matrix(NA, nrow = length(rplottimes), ncol = 3))
-
-for (j in 1:3){
-  for (i in 1:(length(plottimes))){
-vectorplotiLu177[i,j] = cbind(positions[i,1,j])
-vectorplotfLu177[i,j] = rbind(vectors[i,11,j])
-#vectorplotAc225[i+2,j] = rbind(NA)
-
-}
-}
-vectorplotiLu177 = cbind(times=rplottimes,vectorplotiLu177,X4=0)
-vectorplotfLu177 = cbind(times=rplottimes,vectorplotfLu177,X4=1)
-vectorplotNALu177 = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=2)
-vectorplotallLu177 = rbind(vectorplotiLu177,vectorplotfLu177,vectorplotNALu177)
-vectorplotsLu177 = vectorplotallLu177[order(vectorplotallLu177$times),]
-colnames(vectorplotsLu177) = c('times', 'px', 'py', 'pz', 'zz')
+#beta using ionization depletion from - http://www.physics.smu.edu/~scalise/emmanual/radioactivity/lab.html
+Lu177intensity = function(raylength){(energies['elu2hfbeta']/Lu177pathlength) * 2^(-raylength/(Lu177pathlength/1.5))} #if you use this, you have to remove the 1/3 max intensity rule to beta since this is more accurate
+#alpha from Bethe equation - https://en.wikipedia.org/wiki/Bethe_formula
 
 
 
-vectorploti = data.frame(matrix(NA, nrow = (length(rplottimes)), ncol = 3))
-vectorplotf = data.frame(matrix(NA, nrow = (length(rplottimes))*10, ncol = 4))
-
-for (j in 1:3){
-  for (i in 1:(length(plottimes))){
-    vectorploti[i,j] = cbind(positions[i,1,j])
-    for (k in 1:10){
-      vectorplotf[i+((length(rplottimes))*(k-1)),j] = vectors[i,k,j]
-      vectorplotf[i+((length(rplottimes))*(k-1)),4] = k#colnames(rplotout[k+1])
-    }
-  }
-}
-#vectorplotf$X4 = as.number(vectorplotf$X4)
-vectorploti = cbind(times=rplottimes,vectorploti,X4=0)
-vectorplotf = cbind(times=rplottimes,vectorplotf)
-vectorplotNA = cbind(times=rplottimes,X1=NA,X2=NA,X3=NA,X4=11)
-vectorplotall = data.frame(NULL)
-vectorplotall = rbind(vectorploti, vectorplotf[which(vectorplotf$X4 == 1),], vectorplotNA) #colnames(rplotout[2])
-for (i in 2:10){#colnames(rplotout[3:11])){
-  vectorplotall = rbind(vectorplotall, vectorploti, vectorplotf[which(vectorplotf$X4 == i),], vectorplotNA)
-}
-
-vectorplots = vectorplotall[order(vectorplotall$times),]
-colnames(vectorplots) = c('times', 'px', 'py', 'pz', 'Species')
-
-vectorplots1 = vectorplots
-rownames(vectorplots1) = 1:nrow(vectorplots1)
-#vectorplots1$Species = as.character(vectorplots$Species)
-
-for (i in seq(1,nrow(vectorplots1),3)){
-    vectorplots1$Species[i] = NA
-  }
-
-for (i in seq(3,nrow(vectorplots1),3)){
-  vectorplots1$Species[i] = NA
-}
-
-vectorplots1$Species = as.numeric(vectorplots1$Species)
 
 
 
-# 
-# vectorplotsLu177 = vectorplots[!vectorplots$zz==1,]
-# for (i in 2:10){
-#   vectorplotsLu177 = vectorplotsLu177[!vectorplotsLu177$zz==i,]
-# }
 
 
+
+
+Ac225intensity = function(raylength){(energies['eac2fr']/maximumdistances[,'Ac225'])}
+
+
+
+#Ac225intensity = function(raylength){(energies['eac2fr']/Ac225pathlength) * (raylength^0.05)-((energies['eac2fr']/Ac225pathlength))/(1+(raylength/Ac225pathlength)^(-10))}
+#betaintensity = function(raylength){energies['elu2hfbeta']/betapathlength-((energies['elu2hfbeta']/betapathlength))/(1+(raylength/(betapathlength/4))^(-1))} #MeV/mm
+#alphaintensity = function(raylength){energies['eac2fr']/alphapathlength-((energies['eac2fr']/alphapathlength))/(1+(raylength/alphapathlength)^(-10))} #MeV/mm
+
+distancesalpha = c(lseq(0.001,1,1000))
+intensityAc225 = data.frame(distancesalpha,Ac225intensity(distancesalpha))
+colnames(intensityAc225) = c("Distances","Ac-225")
+
+distancesbeta = c(lseq(0.001,20,500))
+intensityLu177 = data.frame(distancesbeta,Lu177intensity(distancesbeta))
+colnames(intensityLu177) = c("Distances","Lu-177")
+
+mintensityAc225 = melt(intensityAc225[1:600,], id="Distances")
+colnames(mintensityAc225) = c("Distances","Species", "LET")
+
+mintensityLu177 = melt(intensityLu177[1:384,], id="Distances")
+colnames(mintensityLu177) = c("Distances","Species", "LET")
+
+
+
+
+AcLET = ggplot(mintensityAc225, aes(x=Distances, y=LET, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_continuous(breaks=c(0, 0.02, 0.04, 0.06, 0.08, 0.1))+
+  scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140))+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))
+
+LuLET = ggplot(mintensityLu177, aes(x=Distances, y=LET, by=Species))+
+  geom_point(aes(color=Species, shape=Species), size=1.25, alpha=1, stroke = 1.25)+
+  scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17))+ 
+  scale_x_continuous(breaks=c(0.0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4))+#0.4, 0.8, 1.2, 1.6))+
+  scale_y_continuous(breaks=c(0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.4))+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x = "Distance (mm)", y = "LET (MeV/mm)", color="Species")+
+  theme(text = element_text(size=18, face = "bold"),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"))+
+  guides(shape=guide_legend(override.aes = list(size=3)))
+
+grid.arrange(AcLET, LuLET, nrow = 1)
+
+write.csv(intensitytestbeta, "intensitybetarecent.csv", sep="\t")
+
+
+positions = data.frame(times, px, py, pz)
+vectors = data.frame(times, Px, Py, Pz)
+positions1 = cbind(positions, 0)
+vectors1 = cbind(vectors, 1)
+
+colnames(positions1) = c('times', 'px', 'py', 'pz', 'zz')
+colnames(vectors1) = c('times', 'px', 'py', 'pz', 'zz')
+
+
+positionlinevector = rbind(positions1, vectors1)
+positionlinevector1 = positionlinevector[order(positionlinevector$times),]
+positionlinevector2 = do.call(rbind, by(positionlinevector1, positionlinevector1$times, rbind, NA))
 
 #control surface
 rhocirc = sqrt(wellradius)
-phicirc = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
-pzcirc = matrix(runif(length(rplottimes), 0, 20/1000))
+phicirc = runif(length(times), 0, 2*pi) #lowercase phi is the point location
+pzcirc = matrix(runif(length(times), 0, 0))
 pxcirc = rhocirc*cos(phicirc)
 pycirc = rhocirc*sin(phicirc)
 
-controlsurface = data.frame(rplottimes, pxcirc, pycirc, pzcirc)
-
-# as.character(vectorplots$zz)
-# 
-#vectorplots$zz = as.numeric(vectorplots$Species)
+controlsurface = data.frame(times, pxcirc, pycirc, pzcirc)
 
 plot_ly() %>% 
-  add_trace(data = vectorplots1, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, 
-            line = list(color = ~Species, width = 0.5),
-            marker = list(color = ~Species, colorscale = 'RdBu', size = 2, showscale = TRUE))%>%
+  add_trace(data = positionlinevector2, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = 'Beta', 
+            line = list(color = 'orange', width = 0.5),
+            marker = list(color = ~zz, colorscale = 'RdBu', size = 2, showscale = TRUE))%>%
   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
-##### geometric model figure ##### -> vectorplots$Species needs to be "numeric" for correct lines
-plot_ly() %>% 
-  add_trace(data = vectorplots1, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
-            marker = list(size = 3, showscale = FALSE),
-            line = list(width = 1, color = "#000000", showscale = FALSE))%>%
-  add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 
-# plot_ly(positions) %>% 
-#   add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
-#             marker = list(color = 'blue', size = 3)) #%>% 
-#  # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
-#   #          marker = list(color = '#0C4B8E', size = 3))
-#             
+plot_ly(positions) %>% 
+  add_trace(x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'markers', name = 'vectorend',
+            marker = list(color = 'blue', size = 3)) #%>% 
+ # add_trace(x = ~px, y = ~py, z = pz, type = 'scatter3d', mode = 'markers', name = 'metal location',
+  #          marker = list(color = '#0C4B8E', size = 3))
+            
 
 
-# plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '#0C4B8E'),
-#       type = 'scatter3d',
-#       mode = 'markers', #symbols = c('circle','x','o'),
-#       marker = list(size = 3))#,color = I('black'), )
-# 
+plot_ly(vectors, x = ~Px, y = ~Py, z = ~Pz, color = ~Pz, colors = c('#BF382A', '#0C4B8E'),
+      type = 'scatter3d',
+      mode = 'markers', #symbols = c('circle','x','o'),
+      marker = list(size = 3))#,color = I('black'), )
 
 
 
@@ -992,9 +647,9 @@ vz = Pz-pz
 
 #r = c(Px, Py, Pz) + t*vectorsline
 #or parametricly
-rx = px+t*vx
-ry = py+t*vy
-yz = pz+t*vz
+rx = Px+t*vx
+ry = Py+t*vy
+yz = Pz+t*vz
 
 
 #myfunction = function(x){2*x+1}
@@ -1009,10 +664,10 @@ v0 = c(2,2,2)
 v1 = c(-2,-2,-2)
 vv = data.frame(v0,v1)
 
-#circle, rho is distance from centerpoint, z is stack height, and phi is angle from starting point
-rhoc = sqrt(runif(length(rplottimes), 0, wellradius))
-phic = runif(length(rplottimes), 0, 2*pi) #lowercase phi is the point location
-pzc = runif(length(rplottimes), 0, cellheight)
+#circle
+rhoc = sqrt(runif(length(times), 0, wellradius))
+phic = runif(length(times), 0, 2*pi) #lowercase phi is the point location
+pzc = runif(length(times), 0, cellheight)
 pxc = rhoc*cos(phic)
 pyc = rhoc*sin(phic)
 
