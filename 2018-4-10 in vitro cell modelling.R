@@ -1110,15 +1110,15 @@ pycirc = rhocirc*sin(phicirc)
 
 controlsurface = data.frame(rplottimes, pxcirc, pycirc, pzcirc, pzcirc0)
 
-#### !PLOTLY #### 
-# plot_ly() %>% 
+# ### !PLOTLY ####
+# plot_ly() %>%
 #   add_trace(data = vectorplotsLu177, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
 #             line = list(width = 1, color = "#000000"),
 #             marker = list(size = 3, showscale = FALSE))%>%
 #   add_trace(data = controlsurface, x = controlsurface$pxcirc, y = controlsurface$pycirc, z = controlsurface$pzcirc, type="mesh3d")
 # 
 # ##### geometric model figure ##### -> vectorplots$Species needs to be "numeric" for correct lines
-# plot_ly() %>% 
+# plot_ly() %>%
 #   add_trace(data = vectorplots1, x = ~px, y = ~py, z = ~pz, type = 'scatter3d', mode = 'lines+markers', name = ~Species, color = ~Species, colors = "Paired",
 #             marker = list(size = 3, showscale = FALSE),
 #             line = list(width = 1, color = "#000000", showscale = FALSE))%>%
@@ -1623,7 +1623,7 @@ ggplot(mdEdxexcomborplotout2, aes(x=times, y=value, by=Species))+
                       short = unit(0.1, "cm"), mid = unit(0.2, "cm"), long = unit(0.3, "cm"),
                       colour = "black", size = 0.5, linetype = 1, alpha = 1, color = NULL)+
 
-  scale_y_continuous(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
+  scale_y_log10(breaks=c(10^(-5), 10^(-4), 10^(-3), 10^(-2), 10^(-1), 10^(0), 10^(1), 10^(2), 10^(3), 10^(4), 10^(5), 10^(6), 10^(7), 10^(8), 10^(9), 10^(10), 10^(11), 10^(12), 10^(13)))+
   
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.title.align = 0.5, text = element_text(size=18, face = "bold"),
